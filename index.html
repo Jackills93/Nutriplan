@@ -768,7 +768,6 @@ async function generateFrigo(){
     renderFrigo(parsed);
   }
   catch(e){clearInterval(iv);document.getElementById('frigoLoading').classList.add('hidden');document.getElementById('frigoForm').classList.remove('hidden');err.textContent='Errore: '+e.message;err.classList.remove('hidden');}
-  catch(e){clearInterval(iv);document.getElementById('frigoLoading').classList.add('hidden');document.getElementById('frigoForm').classList.remove('hidden');err.textContent='Errore: '+e.message;err.classList.remove('hidden');}
 }
 
 function renderFrigo(data){
