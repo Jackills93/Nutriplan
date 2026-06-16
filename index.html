@@ -254,7 +254,22 @@ input[type=range]{width:100%;accent-color:#1D9E75}
         <div class="rc" data-v="vegano" onclick="selDiet(this)"><div class="rl"><i class="ti ti-plant"></i> Vegano</div></div>
       </div>
     </div>
-    <div class="field"><label>Cibi preferiti</label><div class="tag-box" id="prefBox" onclick="document.getElementById('prefIn').focus()"><input type="text" id="prefIn" placeholder="Es: pollo, riso... (Invio per aggiungere)" onkeydown="addTag(event,'pref')"></div></div>
+    <div class="field">
+  <label>Cibi preferiti</label>
+  <div style="display:flex;gap:8px;margin-bottom:6px">
+    <button class="btn sm" onclick="openEanInPref()" style="font-size:11px"><i class="ti ti-barcode"></i> Scansiona prodotto</button>
+    <button class="btn sm" onclick="openEanManualInPref()" style="font-size:11px"><i class="ti ti-123"></i> Inserisci EAN</button>
+  </div>
+  <div id="prefEanPanel" class="hidden" style="margin-bottom:8px">
+    <div style="display:flex;gap:8px;margin-bottom:6px">
+      <input type="number" id="prefEanInput" placeholder="Codice EAN (es. 8001120896063)" style="flex:1;font-size:12px;font-family:var(--font-mono)" onkeydown="if(event.key==='Enter')searchEanForPref()">
+      <button class="btn primary sm" onclick="searchEanForPref()"><i class="ti ti-search"></i></button>
+      <button class="btn sm" onclick="document.getElementById('prefEanPanel').classList.add('hidden')"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="prefEanResult" style="font-size:12px;color:var(--color-text-secondary)"></div>
+  </div>
+  <div class="tag-box" id="prefBox" onclick="document.getElementById('prefIn').focus()"><input type="text" id="prefIn" placeholder="Es: pollo, riso... (Invio per aggiungere)" onkeydown="addTag(event,'pref')"></div>
+</div>
     <div class="field"><label>Intolleranze</label><div class="tag-box" id="intolBox" onclick="document.getElementById('intolIn').focus()"><input type="text" id="intolIn" placeholder="Es: lattosio, glutine... (Invio)" onkeydown="addTag(event,'intol')"></div></div>
     <div class="field"><label>Allergie</label><div class="tag-box" id="allergyBox" onclick="document.getElementById('allergyIn').focus()"><input type="text" id="allergyIn" placeholder="Es: frutta secca, crostacei... (Invio)" onkeydown="addTag(event,'allergy')"></div></div>
   </div>
@@ -451,9 +466,56 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-title"><i class="ti ti-database" style="color:#1D9E75"></i> Cerca alimento</div>
+    <div class="card-sub">Ricerca valori nutrizionali per 100g — gratuito, nessun credito AI utilizzato. Cerca per nome o scansiona il barcode con la fotocamera.</div>
+
+    <div style="display:flex;gap:0;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);overflow:hidden;margin-bottom:1rem">
+      <button id="tab-nome" onclick="switchFoodTab('nome')" style="flex:1;padding:7px;border:none;background:#1D9E75;color:#fff;font-size:12px;font-weight:500;cursor:pointer">🔍 Cerca per nome</button>
+      <button id="tab-barcode" onclick="switchFoodTab('barcode')" style="flex:1;padding:7px;border:none;background:transparent;color:var(--color-text-secondary);font-size:12px;font-weight:500;cursor:pointer">📷 Scansiona barcode</button>
+      <button id="tab-ean" onclick="switchFoodTab('ean')" style="flex:1;padding:7px;border:none;background:transparent;color:var(--color-text-secondary);font-size:12px;font-weight:500;cursor:pointer">🔢 Inserisci EAN</button>
+    </div>
+
+    <!-- CERCA PER NOME -->
+    <div id="panel-nome">
+      <div style="display:flex;gap:8px;margin-bottom:.75rem">
+        <input type="text" id="offSearch" placeholder="Es: petto di pollo, pasta integrale, mela..." style="flex:1" onkeydown="if(event.key==='Enter')searchFood()">
+        <button class="btn primary" onclick="searchFood()"><i class="ti ti-search"></i> Cerca</button>
+      </div>
+      <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:.5rem">Cerca su USDA FoodData Central (alimenti base) e Open Food Facts (prodotti confezionati)</div>
+    </div>
+
+    <!-- SCANSIONA BARCODE -->
+    <div id="panel-barcode" style="display:none">
+      <div style="text-align:center;margin-bottom:.75rem">
+        <button class="btn primary" onclick="startScanner()" id="scanBtn"><i class="ti ti-camera"></i> Attiva fotocamera</button>
+        <button class="btn danger sm" onclick="stopScanner()" id="stopBtn" style="display:none;margin-left:8px"><i class="ti ti-x"></i> Ferma</button>
+      </div>
+      <div id="scannerWrap" style="display:none;position:relative;border-radius:var(--border-radius-md);overflow:hidden;background:#000;max-height:260px">
+        <video id="scannerVideo" style="width:100%;display:block" playsinline autoplay></video>
+        <canvas id="scannerCanvas" style="display:none"></canvas>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:220px;height:120px;border:2px solid #1D9E75;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,0.4)"></div>
+        <div style="position:absolute;bottom:10px;left:0;right:0;text-align:center;color:#fff;font-size:12px">Inquadra il barcode del prodotto</div>
+      </div>
+      <div id="scanStatus" style="font-size:13px;color:var(--color-text-secondary);text-align:center;margin-top:.5rem"></div>
+    </div>
+
+    <!-- INSERISCI EAN MANUALE -->
+    <div id="panel-ean" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:.75rem">
+        <input type="number" id="eanInput" placeholder="Es: 8001120896063" style="flex:1;font-family:var(--font-mono)" onkeydown="if(event.key==='Enter')searchByEAN()">
+        <button class="btn primary" onclick="searchByEAN()"><i class="ti ti-search"></i> Cerca</button>
+      </div>
+      <div style="font-size:11px;color:var(--color-text-tertiary)">Trovi il codice EAN sotto al barcode sulla confezione del prodotto</div>
+    </div>
+
+    <div id="foodLoading" class="hidden" style="text-align:center;padding:.875rem;font-size:13px;color:var(--color-text-secondary)"><div class="spinner" style="width:20px;height:20px;margin:0 auto .5rem;border-width:2px"></div>Ricerca in corso...</div>
+    <div id="foodResults"></div>
+  </div>
+
   <div class="card" style="background:var(--color-background-secondary)">
     <div style="font-size:13px;font-weight:500;margin-bottom:.5rem"><i class="ti ti-shield-check"></i> Privacy</div>
-    <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6">API key Anthropic, Bot Token e Chat ID sono salvati solo nel tuo browser (localStorage). Nessun dato viene trasmesso a server intermedi. Le chiamate AI vanno direttamente ad Anthropic, quelle Telegram direttamente a Telegram.</div>
+    <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6">API key Anthropic, Bot Token e Chat ID sono salvati solo nel tuo browser (localStorage). Nessun dato viene trasmesso a server intermedi.</div>
     <div style="margin-top:.75rem;font-size:12px;color:var(--color-text-tertiary)">⚠️ NutriPlan è uno strumento di supporto. Non sostituisce il parere di un nutrizionista o medico qualificato.</div>
   </div>
 </div>
@@ -546,11 +608,68 @@ document.getElementById('deltaRange').addEventListener('input',function(){const 
 function selDiet(el){document.querySelectorAll('#dietGrid .rc').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');S.cfg.diet=el.dataset.v;}
 function updateStepUI(){for(let i=0;i<4;i++){const d=document.getElementById('sd'+i),l=i<3?document.getElementById('sl'+i):null;document.getElementById('sp'+i).classList.toggle('active',i===cfgStep);if(i<cfgStep){d.className='sdot done';d.innerHTML='<i class="ti ti-check" style="font-size:11px"></i>';if(l)l.className='sline done';}else if(i===cfgStep){d.className='sdot active';d.textContent=i+1;}else{d.className='sdot';d.textContent=i+1;if(l)l.className='sline';}}document.getElementById('stepLbl').textContent='Passo '+(cfgStep+1)+' di 4';document.getElementById('btnBack').style.display=cfgStep>0?'inline-flex':'none';}
 function cfgNext(){if(cfgStep===0){const age=document.getElementById('age').value,sex=document.getElementById('sex').value,w=document.getElementById('weight').value,h=document.getElementById('height').value;if(!age||!sex||!w||!h){showToast('Compila tutti i campi obbligatori','#E24B4A');return;}S.cfg.age=parseInt(age);S.cfg.sex=sex;S.cfg.weight=parseFloat(w);S.cfg.height=parseFloat(h);S.cfg.bf=parseFloat(document.getElementById('bodyfat').value)||null;}if(cfgStep===3){computeTDEE();return;}cfgStep++;updateStepUI();}
-function cfgBack(){if(cfgStep>0){cfgStep--;updateStepUI();}}
-function computeTDEE(){const{age,sex,weight,height,bf,activity,goal,delta,diet}=S.cfg;let bmr;if(bf){const lbm=weight*(1-bf/100);bmr=Math.round(370+21.6*lbm);}else{bmr=sex==='m'?Math.round(10*weight+6.25*height-5*age+5):Math.round(10*weight+6.25*height-5*age-161);}const tdee=Math.round(bmr*activity),target=tdee+delta;const prot=Math.round(weight*(goal==='cut'?2.2:goal==='bulk'?2.0:1.8));const fatKcal=Math.round(target*0.28),fat=Math.round(fatKcal/9),carb=Math.round((target-prot*4-fatKcal)/4);S.tdee={bmr,tdee,target,prot,carb,fat};S.cfg.done=true;S.cfg.pref=S.tags.pref;S.cfg.intol=S.tags.intol;S.cfg.allergy=S.tags.allergy;document.getElementById('btnNext').innerHTML='<i class="ti ti-check"></i> Fatto!';document.getElementById('btnNext').disabled=true;const gl={cut:'Cut — deficit calorico',maintain:'Mantenimento',bulk:'Bulk — surplus calorico'};document.getElementById('sp3').innerHTML=`<div class="card" style="text-align:center;padding:1.5rem"><div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.5rem">Calorie giornaliere target</div><div class="result-big">${target} kcal/die</div><div style="font-size:13px;color:var(--color-text-secondary);margin-top:.5rem">${gl[goal]} · regime ${diet}</div><div class="mstrip" style="margin-top:1.25rem"><div class="mc"><div class="mv">${bmr}</div><div class="ml">BMR kcal</div></div><div class="mc"><div class="mv" style="color:#1D9E75">${prot}g</div><div class="ml">Proteine</div></div><div class="mc"><div class="mv" style="color:#378ADD">${carb}g</div><div class="ml">Carboidrati</div></div><div class="mc"><div class="mv" style="color:#BA7517">${fat}g</div><div class="ml">Grassi</div></div></div></div><button class="btn primary full" onclick="goToMenu()"><i class="ti ti-salad"></i> Genera menù settimanale</button>`;}
+function cfgBack(){
+  if(cfgStep>0){
+    cfgStep--;
+    updateStepUI();
+    // Re-enable next button in case we went back from results
+    const btn=document.getElementById('btnNext');
+    btn.disabled=false;
+    btn.innerHTML='Avanti <i class="ti ti-arrow-right"></i>';
+  }
+}
+function computeTDEE(){const{age,sex,weight,height,bf,activity,goal,delta,diet}=S.cfg;let bmr;if(bf){const lbm=weight*(1-bf/100);bmr=Math.round(370+21.6*lbm);}else{bmr=sex==='m'?Math.round(10*weight+6.25*height-5*age+5):Math.round(10*weight+6.25*height-5*age-161);}const tdee=Math.round(bmr*activity),target=tdee+delta;const prot=Math.round(weight*(goal==='cut'?2.2:goal==='bulk'?2.0:1.8));const fatKcal=Math.round(target*0.28),fat=Math.round(fatKcal/9),carb=Math.round((target-prot*4-fatKcal)/4);S.tdee={bmr,tdee,target,prot,carb,fat};// Adjust TDEE with training data if available
+if(S.cfg.trainMode==='descrivi' && S.cfg.trainData){
+  const extraKcalPerDay=Math.round(S.cfg.trainData.kcalPerWeek/7);
+  S.cfg.trainAdjustment=extraKcalPerDay;
+} else {
+  S.cfg.trainAdjustment=0;
+}
+S.cfg.done=true;S.cfg.pref=S.tags.pref;S.cfg.intol=S.tags.intol;S.cfg.allergy=S.tags.allergy;
+const doneBtn=document.getElementById('btnNext');
+doneBtn.innerHTML='<i class="ti ti-check"></i> Fatto!';
+doneBtn.disabled=true;
+document.getElementById('btnBack').style.display='inline-flex';
+document.getElementById('btnBack').onclick=function(){
+  cfgStep=3;
+  document.getElementById('sp3').innerHTML=`<div class="card">
+    <div class="card-title"><i class="ti ti-salad"></i> Preferenze alimentari</div>
+    <div class="field" style="margin-top:.25rem"><label>Regime alimentare</label>
+      <div class="radio-grid" id="dietGrid" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="rc ${S.cfg.diet==='onnivoro'?'sel':''}" data-v="onnivoro" onclick="selDiet(this)"><div class="rl"><i class="ti ti-meat"></i> Onnivoro</div></div>
+        <div class="rc ${S.cfg.diet==='vegetariano'?'sel':''}" data-v="vegetariano" onclick="selDiet(this)"><div class="rl"><i class="ti ti-leaf"></i> Vegetariano</div></div>
+        <div class="rc ${S.cfg.diet==='vegano'?'sel':''}" data-v="vegano" onclick="selDiet(this)"><div class="rl"><i class="ti ti-plant"></i> Vegano</div></div>
+      </div>
+    </div>
+    <div class="field">
+  <label>Cibi preferiti</label>
+  <div style="display:flex;gap:8px;margin-bottom:6px">
+    <button class="btn sm" onclick="openEanInPref()" style="font-size:11px"><i class="ti ti-barcode"></i> Scansiona prodotto</button>
+    <button class="btn sm" onclick="openEanManualInPref()" style="font-size:11px"><i class="ti ti-123"></i> Inserisci EAN</button>
+  </div>
+  <div id="prefEanPanel" class="hidden" style="margin-bottom:8px">
+    <div style="display:flex;gap:8px;margin-bottom:6px">
+      <input type="number" id="prefEanInput" placeholder="Codice EAN (es. 8001120896063)" style="flex:1;font-size:12px;font-family:var(--font-mono)" onkeydown="if(event.key==='Enter')searchEanForPref()">
+      <button class="btn primary sm" onclick="searchEanForPref()"><i class="ti ti-search"></i></button>
+      <button class="btn sm" onclick="document.getElementById('prefEanPanel').classList.add('hidden')"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="prefEanResult" style="font-size:12px;color:var(--color-text-secondary)"></div>
+  </div>
+  <div class="tag-box" id="prefBox" onclick="document.getElementById('prefIn').focus()"><input type="text" id="prefIn" placeholder="Es: pollo, riso... (Invio per aggiungere)" onkeydown="addTag(event,'pref')"></div>
+</div>
+    <div class="field"><label>Intolleranze</label><div class="tag-box" id="intolBox" onclick="document.getElementById('intolIn').focus()"><input type="text" id="intolIn" placeholder="Es: lattosio, glutine... (Invio)" onkeydown="addTag(event,'intol')"></div></div>
+    <div class="field"><label>Allergie</label><div class="tag-box" id="allergyBox" onclick="document.getElementById('allergyIn').focus()"><input type="text" id="allergyIn" placeholder="Es: frutta secca, crostacei... (Invio)" onkeydown="addTag(event,'allergy')"></div></div>
+  </div>`;
+  S.cfg.done=false;
+  const nb=document.getElementById('btnNext');
+  nb.disabled=false;
+  nb.innerHTML='Avanti <i class="ti ti-arrow-right"></i>';
+  nb.onclick=cfgNext;
+  updateStepUI();
+};const gl={cut:'Cut — deficit calorico',maintain:'Mantenimento',bulk:'Bulk — surplus calorico'};document.getElementById('sp3').innerHTML=`<div class="card" style="text-align:center;padding:1.5rem"><div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.5rem">Calorie giornaliere target</div><div class="result-big">${target} kcal/die</div><div style="font-size:13px;color:var(--color-text-secondary);margin-top:.5rem">${gl[goal]} · regime ${diet}</div><div class="mstrip" style="margin-top:1.25rem"><div class="mc"><div class="mv">${bmr}</div><div class="ml">BMR kcal</div></div><div class="mc"><div class="mv" style="color:#1D9E75">${prot}g</div><div class="ml">Proteine</div></div><div class="mc"><div class="mv" style="color:#378ADD">${carb}g</div><div class="ml">Carboidrati</div></div><div class="mc"><div class="mv" style="color:#BA7517">${fat}g</div><div class="ml">Grassi</div></div></div></div><button class="btn primary full" onclick="goToMenu()"><i class="ti ti-salad"></i> Genera menù settimanale</button>`;}
 function goToMenu(){if(S.cfg.done){document.getElementById('mKcal').value=S.tdee.target;document.getElementById('mProt').value=S.tdee.prot;document.getElementById('mCarb').value=S.tdee.carb;document.getElementById('mDiet').value=S.cfg.diet;const n=[...S.cfg.intol,...S.cfg.allergy].join(', ');if(n)document.getElementById('mNotes').value='Evitare: '+n;document.getElementById('menuFormSub').textContent='Dati importati dal configuratore — modificabili prima di generare.';}goTo('menu');}
 
-async function callAI(prompt,maxTokens=4000){const key=getKey();if(!key){showToast('API key mancante — vai su Setup','#E24B4A');return null;}const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})});const data=await res.json();if(data.error)throw new Error(data.error.message);return data.content.map(b=>b.type==='text'?b.text:'').join('').trim().replace(/```json|```/g,'').trim();}
+async function callAI(prompt,maxTokens=4000){const key=getKey();if(!key){showToast('API key mancante — vai su Setup','#E24B4A');return null;}const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})});const data=await res.json();if(data.error)throw new Error(data.error.message);return data.content.map(b=>b.type==='text'?b.text:'').join('').trim().replace(/```json|```/g,'').trim();}
 
 async function generateMenu(){
   const kcal=document.getElementById('mKcal').value,prot=document.getElementById('mProt').value,carb=document.getElementById('mCarb').value,diet=document.getElementById('mDiet').value,meals=document.getElementById('mMeals').value,notes=document.getElementById('mNotes').value;
@@ -561,8 +680,26 @@ async function generateMenu(){
   document.getElementById('menuGenForm').classList.add('hidden');document.getElementById('menuLoading').classList.remove('hidden');
   const msgs=['Genero il menù con prodotti di stagione...','Bilanciando i macronutrienti su 7 giorni...','Selezionando ingredienti stagionali italiani...','Rifinendo i dettagli...'];
   let mi=0;const iv=setInterval(()=>{mi=(mi+1)%msgs.length;document.getElementById('menuLoadMsg').textContent=msgs[mi];},2200);
-  const prompt=`Sei un nutrizionista esperto italiano. Genera un menù settimanale (7 giorni) con queste specifiche:\n- Calorie: ${kcal} kcal/die · Proteine: ${prot||'auto'}g · Carboidrati: ${carb||'auto'}g\n- Regime: ${diet} · Pasti/giorno: ${meals}\n- Note: ${notes||'nessuna'}${stagPrompt}\nRispondi SOLO con JSON valido senza backtick:\n{"kcal_media":2200,"prot_media":160,"carb_media":240,"fat_media":65,"stagione":"${stagInfo?.label||'Non applicata'}","giorni":[{"kcal_totale":2200,"pasti":[{"tipo":"Colazione","descrizione":"Fiocchi d'avena con latte e fragole fresche","kcal":420},{"tipo":"Pranzo","descrizione":"Pasta integrale con ragù di tacchino e piselli freschi","kcal":580},{"tipo":"Cena","descrizione":"Salmone al forno con asparagi e limone","kcal":520}]}]}\n7 elementi giorni = Lun–Dom. Varia ogni giorno. Totali coerenti con target.`;
-  try{const txt=await callAI(prompt);clearInterval(iv);S.menu=JSON.parse(txt);document.getElementById('menuLoading').classList.add('hidden');renderMenu(stagInfo);}
+  const trainNote2 = S.cfg.trainMode==='descrivi'&&S.cfg.trainData
+    ? '\\n- Allenamento: '+S.cfg.trainData.freq+'x/sett, '+S.cfg.trainData.dur+' min, '+S.cfg.trainData.type+', intensita '+S.cfg.trainData.intensity+'. Aumenta carboidrati nei giorni di allenamento.'
+    : '';
+  const prompt=`Sei un nutrizionista italiano esperto. Genera un menu settimanale di 7 giorni con queste specifiche:
+OBIETTIVO: ${kcal} kcal/die | Proteine: ${prot||'calcola'}g | Carboidrati: ${carb||'calcola'}g
+REGIME: ${diet} | PASTI AL GIORNO: ${meals}
+NOTE: ${notes||'nessuna'}
+${stagInfo ? 'STAGIONE: '+stagInfo.label+'. Usa obbligatoriamente prodotti stagionali italiani: '+stagInfo.prodotti+'.' : ''}
+${trainNote2}
+
+REGOLE OBBLIGATORIE:
+- Ogni alimento deve avere la grammatura esatta. Esempio corretto: "Yogurt greco 0% 150g", "Pasta integrale 80g a secco", "Petto di pollo 160g"
+- Le kcal di ogni pasto devono essere calcolate in base alle grammature reali degli ingredienti
+- Il totale giornaliero deve essere ${kcal} kcal con tolleranza di massimo 50 kcal
+- Varia gli alimenti ogni giorno, niente ripetizioni consecutive
+
+Rispondi SOLO con JSON valido, niente testo prima o dopo:
+{"kcal_media":${kcal},"prot_media":${prot||0},"carb_media":${carb||0},"fat_media":0,"stagione":"${stagInfo?.label||'Nessuna'}","giorni":[{"kcal_totale":2000,"pasti":[{"tipo":"Colazione","descrizione":"Fiocchi avena 60g + latte 200ml","kcal":320},{"tipo":"Pranzo","descrizione":"Pasta integrale 80g + pollo 150g","kcal":480},{"tipo":"Cena","descrizione":"Salmone 180g + verdure 200g","kcal":420}]}]}
+Genera TUTTI e 7 i giorni (Lun-Dom) completi nel JSON.`;
+  try{const txt=await callAI(prompt,6000);clearInterval(iv);const js=txt.slice(txt.indexOf("{"),txt.lastIndexOf("}")+1);S.menu=JSON.parse(js);document.getElementById('menuLoading').classList.add('hidden');renderMenu(stagInfo);}
   catch(e){clearInterval(iv);document.getElementById('menuLoading').classList.add('hidden');document.getElementById('menuGenForm').classList.remove('hidden');err.textContent='Errore: '+e.message;err.classList.remove('hidden');}
 }
 
@@ -612,8 +749,24 @@ async function generateFrigo(){
   const msgs=['Cerco le ricette migliori...','Bilanciando i valori nutrizionali...','Verificando compatibilità ingredienti...','Preparo i procedimenti dettagliati...'];
   let mi=0;const iv=setInterval(()=>{mi=(mi+1)%msgs.length;document.getElementById('frigoLoadMsg').textContent=msgs[mi];},2000);
   const stagKey=getStagioneCorrente();const stagInfo=STAGIONI[stagKey];
-  const prompt=`Chef nutrizionista italiano. Proponi ${num} ricette con: ${ing.join(', ')}.${exc.length?' Escludi: '+exc.join(', ')+'.':''}${meal!=='qualsiasi'?' Tipo pasto: '+meal+'.':''}${kcal?' Kcal/porzione: ~'+kcal+'.':''}${time!=='qualsiasi'?' Max '+time+' min.':''}\nStagione corrente: ${stagInfo.label}. Privilegia abbinamenti stagionali (${stagInfo.prodotti}).\nPresupponi sempre disponibili: olio EVO, sale, pepe, aglio.\nRispondi SOLO con JSON senza backtick:\n{"ricette":[{"nome":"Nome ricetta","kcal":480,"tempo":"25 min","difficolta":"Facile","porzioni":"2 porzioni","ingredienti":["2 uova","1 zucchina media","50g parmigiano"],"ingredienti_mancanti":[],"procedimento":["Lava e taglia la zucchina a rondelle sottili.","Sbatti le uova in una ciotola con sale e pepe.","Scalda un filo d'olio in padella a fuoco medio.","Aggiungi le zucchine e cuoci 5 minuti fino a doratura.","Versa le uova e cuoci altri 3 minuti. Servi con parmigiano."],"note":"Ottima anche fredda il giorno dopo."}]}`;
-  try{const txt=await callAI(prompt,3000);clearInterval(iv);document.getElementById('frigoLoading').classList.add('hidden');renderFrigo(JSON.parse(txt));}
+  const stagKey2=getStagioneCorrente();const stagInfo2=STAGIONI[stagKey2];
+  const excStr = exc.length ? 'NON usare assolutamente: '+exc.join(', ') : '';
+  const mealStr = meal!=='qualsiasi' ? 'Tipo pasto richiesto: '+meal+'.' : '';
+  const kcalStr = kcal ? 'Calorie per porzione: circa '+kcal+' kcal.' : '';
+  const timeStr = time!=='qualsiasi' ? 'Tempo massimo: '+time+' minuti.' : '';
+  const prompt = 'Sei uno chef nutrizionista. Crea esattamente '+num+' ricette usando questi ingredienti disponibili: '+ing.join(', ')+'. '+excStr+' '+mealStr+' '+kcalStr+' '+timeStr+' Stagione: '+stagInfo2.label+'. Ingredienti sempre disponibili: olio EVO, sale, pepe, aglio. Specifica le grammature esatte. Rispondi SOLO con JSON valido senza alcun testo aggiuntivo. Formato: {"ricette":[{"nome":"string","kcal":400,"tempo":"20 min","difficolta":"Facile","porzioni":"2 porzioni","ingredienti":["200g petto pollo","150g zucchine"],"ingredienti_mancanti":[],"procedimento":["Step 1.","Step 2.","Step 3."],"note":"string"}]}';
+  try{
+    const raw=await callAI(prompt,2000);
+    clearInterval(iv);
+    document.getElementById('frigoLoading').classList.add('hidden');
+    const jsonStart=raw.indexOf('{');
+    const jsonEnd=raw.lastIndexOf('}')+1;
+    if(jsonStart===-1||jsonEnd===0) throw new Error('Formato risposta non valido. Riprova.');
+    const parsed=JSON.parse(raw.slice(jsonStart,jsonEnd));
+    if(!parsed.ricette||!parsed.ricette.length) throw new Error('Nessuna ricetta generata. Riprova.');
+    renderFrigo(parsed);
+  }
+  catch(e){clearInterval(iv);document.getElementById('frigoLoading').classList.add('hidden');document.getElementById('frigoForm').classList.remove('hidden');err.textContent='Errore: '+e.message;err.classList.remove('hidden');}
   catch(e){clearInterval(iv);document.getElementById('frigoLoading').classList.add('hidden');document.getElementById('frigoForm').classList.remove('hidden');err.textContent='Errore: '+e.message;err.classList.remove('hidden');}
 }
 
@@ -658,6 +811,243 @@ function renderTrackHistory(){const h=document.getElementById('tHistory');if(!S.
 function renderTrackCharts(){if(S.trackEntries.length<2)return;const labels=S.trackEntries.map(e=>fmtDate(e.date)),weights=S.trackEntries.map(e=>e.weight);const wEl=document.getElementById('chartWeight');wEl.innerHTML='<div class="chart-wrap"><canvas id="wc"></canvas></div>';if(wChart)wChart.destroy();wChart=new Chart(document.getElementById('wc'),{type:'line',data:{labels,datasets:[{label:'Peso kg',data:weights,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.07)',borderWidth:2,pointBackgroundColor:'#1D9E75',pointRadius:4,tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11}}}}}});const hasC=S.trackEntries.some(e=>e.waist);const cEl=document.getElementById('chartCircum');if(hasC){cEl.innerHTML='<div class="chart-wrap"><canvas id="cc"></canvas></div>';if(cChart)cChart.destroy();const ds=[];if(S.trackEntries.some(e=>e.waist))ds.push({label:'Vita',data:S.trackEntries.map(e=>e.waist),borderColor:'#378ADD',borderWidth:2,pointRadius:3,tension:0.3,fill:false});if(S.trackEntries.some(e=>e.hips))ds.push({label:'Fianchi',data:S.trackEntries.map(e=>e.hips),borderColor:'#D85A30',borderWidth:2,pointRadius:3,tension:0.3,fill:false});cChart=new Chart(document.getElementById('cc'),{type:'line',data:{labels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11}}}}}});}const first=S.trackEntries[0],last=S.trackEntries[S.trackEntries.length-1],wd=(last.weight-first.weight).toFixed(1),wc=wd>0?'color:#E24B4A':wd<0?'color:#1D9E75':'color:var(--color-text-secondary)';document.getElementById('statsGrid').innerHTML=`<div style="font-size:14px;font-weight:500;margin-bottom:.875rem">Riepilogo variazioni</div><div class="g4"><div class="mc"><div class="mv" style="font-size:16px">${first.weight} kg</div><div class="ml">Partenza</div></div><div class="mc"><div class="mv" style="font-size:16px;color:#1D9E75">${last.weight} kg</div><div class="ml">Attuale</div></div><div class="mc"><div class="mv" style="font-size:16px;${wc}">${wd>0?'+':''}${wd} kg</div><div class="ml">Variazione</div></div><div class="mc"><div class="mv" style="font-size:16px">${S.trackEntries.length}</div><div class="ml">Rilevazioni</div></div></div>`;}
 function saveGoal(){const start=parseFloat(document.getElementById('gStart').value),target=parseFloat(document.getElementById('gTarget').value),type=document.getElementById('gType').value,deadline=document.getElementById('gDeadline').value;if(isNaN(start)||isNaN(target)||!deadline){showToast('Compila tutti i campi','#E24B4A');return;}S.trackGoal={start,target,type,deadline};localStorage.setItem('np_goal',JSON.stringify(S.trackGoal));renderGoalProgress();showToast('Obiettivo salvato!');}
 function renderGoalProgress(){const g=S.trackGoal;if(!g)return;const gd=document.getElementById('goalDisplay');gd.classList.remove('hidden');const cur=S.trackEntries.length?S.trackEntries[S.trackEntries.length-1].weight:g.start;const tot=Math.abs(g.target-g.start),done=Math.abs(cur-g.start),pct=tot>0?Math.min(100,Math.round(done/tot*100)):100;const days=Math.max(0,Math.round((new Date(g.deadline)-new Date())/(1000*60*60*24)));const tl={cut:'Cut',maintain:'Mantenimento',bulk:'Bulk'};gd.innerHTML=`<div class="card-title" style="margin-bottom:.875rem"><i class="ti ti-trophy"></i> Progresso obiettivo</div><div style="margin-bottom:.875rem;font-size:12px;color:var(--color-text-secondary)">${tl[g.type]} · scadenza ${fmtDate(g.deadline)} · ${days} giorni rimasti</div><div class="g3" style="gap:8px;margin-bottom:1rem"><div class="mc"><div class="mv" style="font-size:16px">${g.start} kg</div><div class="ml">Partenza</div></div><div class="mc"><div class="mv" style="font-size:16px;color:#1D9E75">${cur} kg</div><div class="ml">Attuale</div></div><div class="mc"><div class="mv" style="font-size:16px;color:#378ADD">${g.target} kg</div><div class="ml">Target</div></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-bottom:5px"><span>Completamento</span><span style="font-weight:500;color:#1D9E75">${pct}%</span></div><div class="prog-bar" style="height:8px;margin-bottom:.875rem"><div class="prog-fill" style="width:${pct}%"></div></div><div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem;font-size:13px;color:var(--color-text-secondary)">${pct>=100?'<i class="ti ti-trophy" style="color:#BA7517"></i> Obiettivo raggiunto!':'Mancano <strong style="color:var(--color-text-primary)">'+Math.abs(g.target-cur).toFixed(1)+' kg</strong> all\'obiettivo — '+days+' giorni rimasti.'}</div>`;}
+
+
+let trainType = 'pesi';
+let trainInt = 'media';
+
+function switchTrainTab(tab){
+  ['scheda','descrivi','niente'].forEach(t=>{
+    const btn=document.getElementById('tt-'+t);
+    const panel=document.getElementById('train-'+t);
+    const active=t===tab;
+    btn.style.background=active?'#1D9E75':'transparent';
+    btn.style.color=active?'#fff':'var(--color-text-secondary)';
+    panel.style.display=active?'block':'none';
+  });
+  S.cfg.trainMode=tab;
+  if(tab==='descrivi') updateTrainSummary();
+}
+
+function selTrainType(el){
+  document.querySelectorAll('#trainTypeGrid .rc').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  trainType=el.dataset.v;
+  updateTrainSummary();
+}
+
+function selTrainInt(el){
+  el.closest('.radio-grid').querySelectorAll('.rc').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  trainInt=el.dataset.v;
+  updateTrainSummary();
+}
+
+function updateTrainSummary(){
+  const freq=document.getElementById('trainFreq')?.value||3;
+  const dur=document.getElementById('trainDuration')?.value||60;
+  const typeLabels={pesi:'palestra/pesi',cardio:'cardio',sport:'sport di squadra',misto:'allenamento misto',yoga:'yoga/pilates',crossfit:'CrossFit/HIIT'};
+  const intLabels={bassa:'bassa',media:'media',alta:'alta'};
+  const kcalStimaOra={pesi:350,cardio:500,sport:450,misto:420,yoga:200,crossfit:600};
+  const intMult={bassa:0.8,media:1.0,alta:1.25};
+  const kcalSess=Math.round((kcalStimaOra[trainType]||400)*intMult[trainInt]*(dur/60));
+  const kcalSett=kcalSess*freq;
+  document.getElementById('trainSummaryText').textContent=
+    `${freq}x/sett · ${dur} min · ${typeLabels[trainType]} · intensità ${intLabels[trainInt]} → stima ~${kcalSess} kcal/sessione (${kcalSett} kcal/sett)`;
+  S.cfg.trainData={freq:parseInt(freq),dur:parseInt(dur),type:trainType,intensity:trainInt,note:document.getElementById('trainNote')?.value||'',kcalPerSession:kcalSess,kcalPerWeek:kcalSett};
+}
+
+document.addEventListener('change', function(e){
+  if(['trainFreq','trainDuration'].includes(e.target.id)) updateTrainSummary();
+});
+
+
+// FOOD SEARCH — USDA + Open Food Facts + EAN Scanner
+let scannerStream = null;
+let scannerInterval = null;
+const USDA_KEY = 'DEMO_KEY'; // DEMO_KEY allows 30 req/hour, sufficient for personal use
+
+function switchFoodTab(tab){
+  ['nome','barcode','ean'].forEach(t=>{
+    const btn=document.getElementById('tab-'+t);
+    const panel=document.getElementById('panel-'+t);
+    const active=t===tab;
+    btn.style.background=active?'#1D9E75':'transparent';
+    btn.style.color=active?'#fff':'var(--color-text-secondary)';
+    panel.style.display=active?'block':'none';
+  });
+  if(tab!=='barcode') stopScanner();
+}
+
+function renderFoodResults(items, source){
+  const res=document.getElementById('foodResults');
+  if(!items.length){res.innerHTML='<div class="no-data">Nessun alimento trovato. Prova con un termine diverso.</div>';return;}
+  res.innerHTML=`<div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:.5rem;text-align:right">Fonte: ${source}</div>`+
+  items.map(it=>`<div style="padding:.75rem 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+    <div style="font-size:13px;font-weight:500;margin-bottom:5px">${it.name}${it.brand?' <span style="font-weight:400;color:var(--color-text-secondary)">· '+it.brand+'</span>':''}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+      <span class="badge" style="background:#E1F5EE;color:#0F6E56;font-size:12px">${it.kcal} kcal</span>
+      <span class="badge" style="background:#FAECE7;color:#712B13">P: ${it.prot}g</span>
+      <span class="badge" style="background:#E6F1FB;color:#185FA5">C: ${it.carb}g</span>
+      <span class="badge" style="background:#FAEEDA;color:#633806">G: ${it.fat}g</span>
+      ${it.fiber?`<span class="badge" style="background:#F1EFE8;color:#444">F: ${it.fiber}g</span>`:''}
+      <span style="font-size:10px;color:var(--color-text-tertiary);align-self:center">per 100g</span>
+    </div>
+    ${it.qty?`<div style="font-size:11px;color:var(--color-text-tertiary)">Porzione tipica: ${it.qty}</div>`:''}
+  </div>`).join('');
+}
+
+async function searchFood(){
+  const q=document.getElementById('offSearch').value.trim();
+  if(!q)return;
+  document.getElementById('foodResults').innerHTML='';
+  document.getElementById('foodLoading').classList.remove('hidden');
+  const results=[];
+
+  // Try USDA first (more precise for basic foods)
+  try{
+    const r=await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(q)}&pageSize=3&api_key=${USDA_KEY}&dataType=Foundation,SR%20Legacy`);
+    const d=await r.json();
+    if(d.foods?.length){
+      d.foods.slice(0,3).forEach(f=>{
+        const n=f.foodNutrients||[];
+        const get=(id)=>Math.round((n.find(x=>x.nutrientId===id)?.value||0)*10)/10;
+        results.push({name:f.description,brand:'USDA',kcal:Math.round(get(1008)),prot:get(1003),carb:get(1005),fat:get(1004),fiber:get(1079),qty:''});
+      });
+    }
+  }catch(e){}
+
+  // Also search Open Food Facts (better for packaged Italian products)
+  try{
+    const r2=await fetch(`https://it.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=3&fields=product_name,nutriments,brands,quantity`);
+    const d2=await r2.json();
+    if(d2.products?.length){
+      d2.products.filter(p=>p.product_name).slice(0,3).forEach(p=>{
+        const n=p.nutriments||{};
+        const kcal=Math.round(n['energy-kcal_100g']||0);
+        if(kcal>0) results.push({name:p.product_name,brand:p.brands||'',kcal,prot:Math.round((n['proteins_100g']||0)*10)/10,carb:Math.round((n['carbohydrates_100g']||0)*10)/10,fat:Math.round((n['fat_100g']||0)*10)/10,fiber:Math.round((n['fiber_100g']||0)*10)/10,qty:p.quantity||''});
+      });
+    }
+  }catch(e){}
+
+  document.getElementById('foodLoading').classList.add('hidden');
+  renderFoodResults(results,'USDA FoodData Central + Open Food Facts');
+}
+
+async function searchByEAN(){
+  const ean=document.getElementById('eanInput').value.trim();
+  if(!ean){showToast('Inserisci un codice EAN','#E24B4A');return;}
+  document.getElementById('foodResults').innerHTML='';
+  document.getElementById('foodLoading').classList.remove('hidden');
+  try{
+    const r=await fetch(`https://world.openfoodfacts.org/api/v0/product/${ean}.json`);
+    const d=await r.json();
+    document.getElementById('foodLoading').classList.add('hidden');
+    if(d.status!==1||!d.product){document.getElementById('foodResults').innerHTML='<div class="no-data">Prodotto non trovato. Verifica il codice EAN.</div>';return;}
+    const p=d.product, n=p.nutriments||{};
+    const kcal=Math.round(n['energy-kcal_100g']||0);
+    renderFoodResults([{name:p.product_name||'Prodotto sconosciuto',brand:p.brands||'',kcal,prot:Math.round((n['proteins_100g']||0)*10)/10,carb:Math.round((n['carbohydrates_100g']||0)*10)/10,fat:Math.round((n['fat_100g']||0)*10)/10,fiber:Math.round((n['fiber_100g']||0)*10)/10,qty:p.quantity||''}],'Open Food Facts (EAN: '+ean+')');
+  }catch(e){document.getElementById('foodLoading').classList.add('hidden');document.getElementById('foodResults').innerHTML='<div class="error-box">Errore di connessione.</div>';}
+}
+
+async function startScanner(){
+  const wrap=document.getElementById('scannerWrap');
+  const video=document.getElementById('scannerVideo');
+  const status=document.getElementById('scanStatus');
+  const startBtn=document.getElementById('scanBtn');
+  const stopBtnEl=document.getElementById('stopBtn');
+  try{
+    scannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
+    video.srcObject=scannerStream;
+    wrap.style.display='block';
+    startBtn.style.display='none';
+    stopBtnEl.style.display='inline-flex';
+    status.textContent='Fotocamera attiva — inquadra il barcode';
+    // Load ZXing
+    if(!window.ZXing){
+      await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/zxing-js/0.20.0/zxing.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+    }
+    const hints=new Map();
+    const codeReader=new ZXing.BrowserMultiFormatReader(hints);
+    scannerInterval=setInterval(async()=>{
+      if(!scannerStream)return;
+      const canvas=document.getElementById('scannerCanvas');
+      const ctx=canvas.getContext('2d');
+      canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+      ctx.drawImage(video,0,0);
+      try{
+        const result=await codeReader.decodeFromImageElement(canvas);
+        if(result){
+          const code=result.getText();
+          status.textContent='Codice trovato: '+code+' — ricerca in corso...';
+          stopScanner();
+          document.getElementById('eanInput').value=code;
+          switchFoodTab('ean');
+          await searchByEAN();
+        }
+      }catch(e){}
+    },500);
+  }catch(e){
+    status.textContent='Impossibile accedere alla fotocamera. Usa inserimento manuale EAN.';
+    showToast('Fotocamera non disponibile','#E24B4A');
+  }
+}
+
+function stopScanner(){
+  if(scannerStream){scannerStream.getTracks().forEach(t=>t.stop());scannerStream=null;}
+  if(scannerInterval){clearInterval(scannerInterval);scannerInterval=null;}
+  const wrap=document.getElementById('scannerWrap');
+  const startBtn=document.getElementById('scanBtn');
+  const stopBtnEl=document.getElementById('stopBtn');
+  if(wrap)wrap.style.display='none';
+  if(startBtn)startBtn.style.display='inline-flex';
+  if(stopBtnEl)stopBtnEl.style.display='none';
+}
+
+// Keep old name for compatibility
+async function searchOFF(){ await searchFood(); }
+
+function openEanInPref(){
+  // Use camera scanner then fill in pref
+  switchFoodTab('barcode');
+  goTo('impostazioni');
+  showToast('Scansiona il prodotto, poi torna alle preferenze');
+}
+
+function openEanManualInPref(){
+  document.getElementById('prefEanPanel').classList.remove('hidden');
+  document.getElementById('prefEanInput').focus();
+}
+
+async function searchEanForPref(){
+  const ean=document.getElementById('prefEanInput').value.trim();
+  const res=document.getElementById('prefEanResult');
+  if(!ean)return;
+  res.textContent='Ricerca...';
+  try{
+    const r=await fetch(`https://world.openfoodfacts.org/api/v0/product/${ean}.json`);
+    const d=await r.json();
+    if(d.status!==1||!d.product){res.textContent='Prodotto non trovato.';return;}
+    const name=d.product.product_name||'Prodotto sconosciuto';
+    const n=d.product.nutriments||{};
+    const kcal=Math.round(n['energy-kcal_100g']||0);
+    res.innerHTML=`<span style="color:#0F6E56;font-weight:500">${name}</span> — ${kcal} kcal/100g`;
+    // Auto-add to preferred foods
+    if(name&&!S.tags.pref.includes(name)){
+      S.tags.pref.push(name);
+      const box=document.getElementById('prefBox');
+      const inp=document.getElementById('prefIn');
+      if(box&&inp){
+        const t=document.createElement('div');t.className='tag';
+        t.innerHTML=name+'<span class="rx" onclick="rmTag(this,\'pref\',\''+name.replace(/'/g,"\\'")+'\')" >×</span>';
+        box.insertBefore(t,inp);
+      }
+    }
+    document.getElementById('prefEanInput').value='';
+  }catch(e){res.textContent='Errore di connessione.';}
+}
+
+
 
 const savedKey=localStorage.getItem('np_apikey');
 if(savedKey){document.getElementById('apikeyGate').classList.add('hidden');document.getElementById('mainApp').classList.remove('hidden');renderTrackHistory();renderTgStatus();initSeasonBadge();}
