@@ -451,9 +451,20 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-title"><i class="ti ti-search" style="color:#1D9E75"></i> Cerca alimento</div>
+    <div class="card-sub">Ricerca valori nutrizionali su Open Food Facts — gratuito, nessun credito AI utilizzato.</div>
+    <div style="display:flex;gap:8px;margin-bottom:.875rem">
+      <input type="text" id="offSearch" placeholder="Es: pollo, pasta integrale, mela..." style="flex:1" onkeydown="if(event.key==='Enter')searchOFF()">
+      <button class="btn primary" onclick="searchOFF()"><i class="ti ti-search"></i> Cerca</button>
+    </div>
+    <div id="offLoading" class="hidden" style="text-align:center;padding:.875rem;font-size:13px;color:var(--color-text-secondary)">Ricerca in corso...</div>
+    <div id="offResults"></div>
+  </div>
+
   <div class="card" style="background:var(--color-background-secondary)">
     <div style="font-size:13px;font-weight:500;margin-bottom:.5rem"><i class="ti ti-shield-check"></i> Privacy</div>
-    <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6">API key Anthropic, Bot Token e Chat ID sono salvati solo nel tuo browser (localStorage). Nessun dato viene trasmesso a server intermedi. Le chiamate AI vanno direttamente ad Anthropic, quelle Telegram direttamente a Telegram.</div>
+    <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6">API key Anthropic, Bot Token e Chat ID sono salvati solo nel tuo browser (localStorage). Nessun dato viene trasmesso a server intermedi.</div>
     <div style="margin-top:.75rem;font-size:12px;color:var(--color-text-tertiary)">⚠️ NutriPlan è uno strumento di supporto. Non sostituisce il parere di un nutrizionista o medico qualificato.</div>
   </div>
 </div>
@@ -547,10 +558,17 @@ function selDiet(el){document.querySelectorAll('#dietGrid .rc').forEach(c=>c.cla
 function updateStepUI(){for(let i=0;i<4;i++){const d=document.getElementById('sd'+i),l=i<3?document.getElementById('sl'+i):null;document.getElementById('sp'+i).classList.toggle('active',i===cfgStep);if(i<cfgStep){d.className='sdot done';d.innerHTML='<i class="ti ti-check" style="font-size:11px"></i>';if(l)l.className='sline done';}else if(i===cfgStep){d.className='sdot active';d.textContent=i+1;}else{d.className='sdot';d.textContent=i+1;if(l)l.className='sline';}}document.getElementById('stepLbl').textContent='Passo '+(cfgStep+1)+' di 4';document.getElementById('btnBack').style.display=cfgStep>0?'inline-flex':'none';}
 function cfgNext(){if(cfgStep===0){const age=document.getElementById('age').value,sex=document.getElementById('sex').value,w=document.getElementById('weight').value,h=document.getElementById('height').value;if(!age||!sex||!w||!h){showToast('Compila tutti i campi obbligatori','#E24B4A');return;}S.cfg.age=parseInt(age);S.cfg.sex=sex;S.cfg.weight=parseFloat(w);S.cfg.height=parseFloat(h);S.cfg.bf=parseFloat(document.getElementById('bodyfat').value)||null;}if(cfgStep===3){computeTDEE();return;}cfgStep++;updateStepUI();}
 function cfgBack(){if(cfgStep>0){cfgStep--;updateStepUI();}}
-function computeTDEE(){const{age,sex,weight,height,bf,activity,goal,delta,diet}=S.cfg;let bmr;if(bf){const lbm=weight*(1-bf/100);bmr=Math.round(370+21.6*lbm);}else{bmr=sex==='m'?Math.round(10*weight+6.25*height-5*age+5):Math.round(10*weight+6.25*height-5*age-161);}const tdee=Math.round(bmr*activity),target=tdee+delta;const prot=Math.round(weight*(goal==='cut'?2.2:goal==='bulk'?2.0:1.8));const fatKcal=Math.round(target*0.28),fat=Math.round(fatKcal/9),carb=Math.round((target-prot*4-fatKcal)/4);S.tdee={bmr,tdee,target,prot,carb,fat};S.cfg.done=true;S.cfg.pref=S.tags.pref;S.cfg.intol=S.tags.intol;S.cfg.allergy=S.tags.allergy;document.getElementById('btnNext').innerHTML='<i class="ti ti-check"></i> Fatto!';document.getElementById('btnNext').disabled=true;const gl={cut:'Cut — deficit calorico',maintain:'Mantenimento',bulk:'Bulk — surplus calorico'};document.getElementById('sp3').innerHTML=`<div class="card" style="text-align:center;padding:1.5rem"><div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.5rem">Calorie giornaliere target</div><div class="result-big">${target} kcal/die</div><div style="font-size:13px;color:var(--color-text-secondary);margin-top:.5rem">${gl[goal]} · regime ${diet}</div><div class="mstrip" style="margin-top:1.25rem"><div class="mc"><div class="mv">${bmr}</div><div class="ml">BMR kcal</div></div><div class="mc"><div class="mv" style="color:#1D9E75">${prot}g</div><div class="ml">Proteine</div></div><div class="mc"><div class="mv" style="color:#378ADD">${carb}g</div><div class="ml">Carboidrati</div></div><div class="mc"><div class="mv" style="color:#BA7517">${fat}g</div><div class="ml">Grassi</div></div></div></div><button class="btn primary full" onclick="goToMenu()"><i class="ti ti-salad"></i> Genera menù settimanale</button>`;}
+function computeTDEE(){const{age,sex,weight,height,bf,activity,goal,delta,diet}=S.cfg;let bmr;if(bf){const lbm=weight*(1-bf/100);bmr=Math.round(370+21.6*lbm);}else{bmr=sex==='m'?Math.round(10*weight+6.25*height-5*age+5):Math.round(10*weight+6.25*height-5*age-161);}const tdee=Math.round(bmr*activity),target=tdee+delta;const prot=Math.round(weight*(goal==='cut'?2.2:goal==='bulk'?2.0:1.8));const fatKcal=Math.round(target*0.28),fat=Math.round(fatKcal/9),carb=Math.round((target-prot*4-fatKcal)/4);S.tdee={bmr,tdee,target,prot,carb,fat};// Adjust TDEE with training data if available
+if(S.cfg.trainMode==='descrivi' && S.cfg.trainData){
+  const extraKcalPerDay=Math.round(S.cfg.trainData.kcalPerWeek/7);
+  S.cfg.trainAdjustment=extraKcalPerDay;
+} else {
+  S.cfg.trainAdjustment=0;
+}
+S.cfg.done=true;S.cfg.pref=S.tags.pref;S.cfg.intol=S.tags.intol;S.cfg.allergy=S.tags.allergy;document.getElementById('btnNext').innerHTML='<i class="ti ti-check"></i> Fatto!';document.getElementById('btnNext').disabled=true;const gl={cut:'Cut — deficit calorico',maintain:'Mantenimento',bulk:'Bulk — surplus calorico'};document.getElementById('sp3').innerHTML=`<div class="card" style="text-align:center;padding:1.5rem"><div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.5rem">Calorie giornaliere target</div><div class="result-big">${target} kcal/die</div><div style="font-size:13px;color:var(--color-text-secondary);margin-top:.5rem">${gl[goal]} · regime ${diet}</div><div class="mstrip" style="margin-top:1.25rem"><div class="mc"><div class="mv">${bmr}</div><div class="ml">BMR kcal</div></div><div class="mc"><div class="mv" style="color:#1D9E75">${prot}g</div><div class="ml">Proteine</div></div><div class="mc"><div class="mv" style="color:#378ADD">${carb}g</div><div class="ml">Carboidrati</div></div><div class="mc"><div class="mv" style="color:#BA7517">${fat}g</div><div class="ml">Grassi</div></div></div></div><button class="btn primary full" onclick="goToMenu()"><i class="ti ti-salad"></i> Genera menù settimanale</button>`;}
 function goToMenu(){if(S.cfg.done){document.getElementById('mKcal').value=S.tdee.target;document.getElementById('mProt').value=S.tdee.prot;document.getElementById('mCarb').value=S.tdee.carb;document.getElementById('mDiet').value=S.cfg.diet;const n=[...S.cfg.intol,...S.cfg.allergy].join(', ');if(n)document.getElementById('mNotes').value='Evitare: '+n;document.getElementById('menuFormSub').textContent='Dati importati dal configuratore — modificabili prima di generare.';}goTo('menu');}
 
-async function callAI(prompt,maxTokens=4000){const key=getKey();if(!key){showToast('API key mancante — vai su Setup','#E24B4A');return null;}const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})});const data=await res.json();if(data.error)throw new Error(data.error.message);return data.content.map(b=>b.type==='text'?b.text:'').join('').trim().replace(/```json|```/g,'').trim();}
+async function callAI(prompt,maxTokens=4000){const key=getKey();if(!key){showToast('API key mancante — vai su Setup','#E24B4A');return null;}const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})});const data=await res.json();if(data.error)throw new Error(data.error.message);return data.content.map(b=>b.type==='text'?b.text:'').join('').trim().replace(/```json|```/g,'').trim();}
 
 async function generateMenu(){
   const kcal=document.getElementById('mKcal').value,prot=document.getElementById('mProt').value,carb=document.getElementById('mCarb').value,diet=document.getElementById('mDiet').value,meals=document.getElementById('mMeals').value,notes=document.getElementById('mNotes').value;
@@ -561,7 +579,7 @@ async function generateMenu(){
   document.getElementById('menuGenForm').classList.add('hidden');document.getElementById('menuLoading').classList.remove('hidden');
   const msgs=['Genero il menù con prodotti di stagione...','Bilanciando i macronutrienti su 7 giorni...','Selezionando ingredienti stagionali italiani...','Rifinendo i dettagli...'];
   let mi=0;const iv=setInterval(()=>{mi=(mi+1)%msgs.length;document.getElementById('menuLoadMsg').textContent=msgs[mi];},2200);
-  const prompt=`Sei un nutrizionista esperto italiano. Genera un menù settimanale (7 giorni) con queste specifiche:\n- Calorie: ${kcal} kcal/die · Proteine: ${prot||'auto'}g · Carboidrati: ${carb||'auto'}g\n- Regime: ${diet} · Pasti/giorno: ${meals}\n- Note: ${notes||'nessuna'}${stagPrompt}\nRispondi SOLO con JSON valido senza backtick:\n{"kcal_media":2200,"prot_media":160,"carb_media":240,"fat_media":65,"stagione":"${stagInfo?.label||'Non applicata'}","giorni":[{"kcal_totale":2200,"pasti":[{"tipo":"Colazione","descrizione":"Fiocchi d'avena con latte e fragole fresche","kcal":420},{"tipo":"Pranzo","descrizione":"Pasta integrale con ragù di tacchino e piselli freschi","kcal":580},{"tipo":"Cena","descrizione":"Salmone al forno con asparagi e limone","kcal":520}]}]}\n7 elementi giorni = Lun–Dom. Varia ogni giorno. Totali coerenti con target.`;
+  const prompt=`Sei un nutrizionista esperto italiano. Genera un menù settimanale (7 giorni) con queste specifiche:\n- Calorie: ${kcal} kcal/die · Proteine: ${prot||'auto'}g · Carboidrati: ${carb||'auto'}g\n- Regime: ${diet} · Pasti/giorno: ${meals}\n- Note: ${notes||'nessuna'}${stagPrompt}${S.cfg.trainMode==='descrivi'&&S.cfg.trainData?`\n- Dati allenamento: ${S.cfg.trainData.freq}x/sett, ${S.cfg.trainData.dur} min, ${S.cfg.trainData.type}, intensità ${S.cfg.trainData.intensity}. Stima dispendio: ${S.cfg.trainData.kcalPerSession} kcal/sessione. Tieni conto di questo per bilanciare i carboidrati nei giorni di allenamento.`:''}\nRispondi SOLO con JSON valido senza backtick:\n{"kcal_media":2200,"prot_media":160,"carb_media":240,"fat_media":65,"stagione":"${stagInfo?.label||'Non applicata'}","giorni":[{"kcal_totale":2200,"pasti":[{"tipo":"Colazione","descrizione":"Fiocchi d'avena con latte e fragole fresche","kcal":420},{"tipo":"Pranzo","descrizione":"Pasta integrale con ragù di tacchino e piselli freschi","kcal":580},{"tipo":"Cena","descrizione":"Salmone al forno con asparagi e limone","kcal":520}]}]}\n7 elementi giorni = Lun–Dom. Varia ogni giorno. Totali coerenti con target.`;
   try{const txt=await callAI(prompt);clearInterval(iv);S.menu=JSON.parse(txt);document.getElementById('menuLoading').classList.add('hidden');renderMenu(stagInfo);}
   catch(e){clearInterval(iv);document.getElementById('menuLoading').classList.add('hidden');document.getElementById('menuGenForm').classList.remove('hidden');err.textContent='Errore: '+e.message;err.classList.remove('hidden');}
 }
@@ -658,6 +676,86 @@ function renderTrackHistory(){const h=document.getElementById('tHistory');if(!S.
 function renderTrackCharts(){if(S.trackEntries.length<2)return;const labels=S.trackEntries.map(e=>fmtDate(e.date)),weights=S.trackEntries.map(e=>e.weight);const wEl=document.getElementById('chartWeight');wEl.innerHTML='<div class="chart-wrap"><canvas id="wc"></canvas></div>';if(wChart)wChart.destroy();wChart=new Chart(document.getElementById('wc'),{type:'line',data:{labels,datasets:[{label:'Peso kg',data:weights,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.07)',borderWidth:2,pointBackgroundColor:'#1D9E75',pointRadius:4,tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11}}}}}});const hasC=S.trackEntries.some(e=>e.waist);const cEl=document.getElementById('chartCircum');if(hasC){cEl.innerHTML='<div class="chart-wrap"><canvas id="cc"></canvas></div>';if(cChart)cChart.destroy();const ds=[];if(S.trackEntries.some(e=>e.waist))ds.push({label:'Vita',data:S.trackEntries.map(e=>e.waist),borderColor:'#378ADD',borderWidth:2,pointRadius:3,tension:0.3,fill:false});if(S.trackEntries.some(e=>e.hips))ds.push({label:'Fianchi',data:S.trackEntries.map(e=>e.hips),borderColor:'#D85A30',borderWidth:2,pointRadius:3,tension:0.3,fill:false});cChart=new Chart(document.getElementById('cc'),{type:'line',data:{labels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11}}}}}});}const first=S.trackEntries[0],last=S.trackEntries[S.trackEntries.length-1],wd=(last.weight-first.weight).toFixed(1),wc=wd>0?'color:#E24B4A':wd<0?'color:#1D9E75':'color:var(--color-text-secondary)';document.getElementById('statsGrid').innerHTML=`<div style="font-size:14px;font-weight:500;margin-bottom:.875rem">Riepilogo variazioni</div><div class="g4"><div class="mc"><div class="mv" style="font-size:16px">${first.weight} kg</div><div class="ml">Partenza</div></div><div class="mc"><div class="mv" style="font-size:16px;color:#1D9E75">${last.weight} kg</div><div class="ml">Attuale</div></div><div class="mc"><div class="mv" style="font-size:16px;${wc}">${wd>0?'+':''}${wd} kg</div><div class="ml">Variazione</div></div><div class="mc"><div class="mv" style="font-size:16px">${S.trackEntries.length}</div><div class="ml">Rilevazioni</div></div></div>`;}
 function saveGoal(){const start=parseFloat(document.getElementById('gStart').value),target=parseFloat(document.getElementById('gTarget').value),type=document.getElementById('gType').value,deadline=document.getElementById('gDeadline').value;if(isNaN(start)||isNaN(target)||!deadline){showToast('Compila tutti i campi','#E24B4A');return;}S.trackGoal={start,target,type,deadline};localStorage.setItem('np_goal',JSON.stringify(S.trackGoal));renderGoalProgress();showToast('Obiettivo salvato!');}
 function renderGoalProgress(){const g=S.trackGoal;if(!g)return;const gd=document.getElementById('goalDisplay');gd.classList.remove('hidden');const cur=S.trackEntries.length?S.trackEntries[S.trackEntries.length-1].weight:g.start;const tot=Math.abs(g.target-g.start),done=Math.abs(cur-g.start),pct=tot>0?Math.min(100,Math.round(done/tot*100)):100;const days=Math.max(0,Math.round((new Date(g.deadline)-new Date())/(1000*60*60*24)));const tl={cut:'Cut',maintain:'Mantenimento',bulk:'Bulk'};gd.innerHTML=`<div class="card-title" style="margin-bottom:.875rem"><i class="ti ti-trophy"></i> Progresso obiettivo</div><div style="margin-bottom:.875rem;font-size:12px;color:var(--color-text-secondary)">${tl[g.type]} · scadenza ${fmtDate(g.deadline)} · ${days} giorni rimasti</div><div class="g3" style="gap:8px;margin-bottom:1rem"><div class="mc"><div class="mv" style="font-size:16px">${g.start} kg</div><div class="ml">Partenza</div></div><div class="mc"><div class="mv" style="font-size:16px;color:#1D9E75">${cur} kg</div><div class="ml">Attuale</div></div><div class="mc"><div class="mv" style="font-size:16px;color:#378ADD">${g.target} kg</div><div class="ml">Target</div></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-bottom:5px"><span>Completamento</span><span style="font-weight:500;color:#1D9E75">${pct}%</span></div><div class="prog-bar" style="height:8px;margin-bottom:.875rem"><div class="prog-fill" style="width:${pct}%"></div></div><div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem;font-size:13px;color:var(--color-text-secondary)">${pct>=100?'<i class="ti ti-trophy" style="color:#BA7517"></i> Obiettivo raggiunto!':'Mancano <strong style="color:var(--color-text-primary)">'+Math.abs(g.target-cur).toFixed(1)+' kg</strong> all\'obiettivo — '+days+' giorni rimasti.'}</div>`;}
+
+
+let trainType = 'pesi';
+let trainInt = 'media';
+
+function switchTrainTab(tab){
+  ['scheda','descrivi','niente'].forEach(t=>{
+    const btn=document.getElementById('tt-'+t);
+    const panel=document.getElementById('train-'+t);
+    const active=t===tab;
+    btn.style.background=active?'#1D9E75':'transparent';
+    btn.style.color=active?'#fff':'var(--color-text-secondary)';
+    panel.style.display=active?'block':'none';
+  });
+  S.cfg.trainMode=tab;
+  if(tab==='descrivi') updateTrainSummary();
+}
+
+function selTrainType(el){
+  document.querySelectorAll('#trainTypeGrid .rc').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  trainType=el.dataset.v;
+  updateTrainSummary();
+}
+
+function selTrainInt(el){
+  el.closest('.radio-grid').querySelectorAll('.rc').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  trainInt=el.dataset.v;
+  updateTrainSummary();
+}
+
+function updateTrainSummary(){
+  const freq=document.getElementById('trainFreq')?.value||3;
+  const dur=document.getElementById('trainDuration')?.value||60;
+  const typeLabels={pesi:'palestra/pesi',cardio:'cardio',sport:'sport di squadra',misto:'allenamento misto',yoga:'yoga/pilates',crossfit:'CrossFit/HIIT'};
+  const intLabels={bassa:'bassa',media:'media',alta:'alta'};
+  const kcalStimaOra={pesi:350,cardio:500,sport:450,misto:420,yoga:200,crossfit:600};
+  const intMult={bassa:0.8,media:1.0,alta:1.25};
+  const kcalSess=Math.round((kcalStimaOra[trainType]||400)*intMult[trainInt]*(dur/60));
+  const kcalSett=kcalSess*freq;
+  document.getElementById('trainSummaryText').textContent=
+    `${freq}x/sett · ${dur} min · ${typeLabels[trainType]} · intensità ${intLabels[trainInt]} → stima ~${kcalSess} kcal/sessione (${kcalSett} kcal/sett)`;
+  S.cfg.trainData={freq:parseInt(freq),dur:parseInt(dur),type:trainType,intensity:trainInt,note:document.getElementById('trainNote')?.value||'',kcalPerSession:kcalSess,kcalPerWeek:kcalSett};
+}
+
+document.addEventListener('change', function(e){
+  if(['trainFreq','trainDuration'].includes(e.target.id)) updateTrainSummary();
+});
+
+async function searchOFF(){
+  const q=document.getElementById('offSearch').value.trim();
+  const res=document.getElementById('offResults');
+  const load=document.getElementById('offLoading');
+  if(!q)return;
+  res.innerHTML='';load.classList.remove('hidden');
+  try{
+    const r=await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=5&fields=product_name,nutriments,brands,quantity`);
+    const data=await r.json();
+    load.classList.add('hidden');
+    if(!data.products?.length){res.innerHTML='<div class="no-data">Nessun alimento trovato. Prova con un termine diverso.</div>';return;}
+    res.innerHTML=data.products.filter(p=>p.product_name).map(p=>{
+      const n=p.nutriments||{};
+      const kcal=Math.round(n['energy-kcal_100g']||n['energy_100g']/4.184||0);
+      const prot=Math.round((n['proteins_100g']||0)*10)/10;
+      const carb=Math.round((n['carbohydrates_100g']||0)*10)/10;
+      const fat=Math.round((n['fat_100g']||0)*10)/10;
+      return`<div style="padding:.75rem 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+        <div style="font-size:13px;font-weight:500;margin-bottom:4px">${p.product_name}${p.brands?' <span style=\'font-weight:400;color:var(--color-text-secondary)\'>· '+p.brands+'</span>':''}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span class="badge" style="background:#E1F5EE;color:#0F6E56">${kcal} kcal</span>
+          <span class="badge" style="background:#FAECE7;color:#712B13">P: ${prot}g</span>
+          <span class="badge" style="background:#E6F1FB;color:#185FA5">C: ${carb}g</span>
+          <span class="badge" style="background:#FAEEDA;color:#633806">G: ${fat}g</span>
+          <span style="font-size:11px;color:var(--color-text-tertiary);align-self:center">per 100g</span>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){load.classList.add('hidden');res.innerHTML='<div class="error-box">Errore di connessione a Open Food Facts.</div>';}
+}
 
 const savedKey=localStorage.getItem('np_apikey');
 if(savedKey){document.getElementById('apikeyGate').classList.add('hidden');document.getElementById('mainApp').classList.remove('hidden');renderTrackHistory();renderTgStatus();initSeasonBadge();}
