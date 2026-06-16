@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriPlan — Il tuo piano nutrizionale personalizzato</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root{
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', monospace;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f5f5f5;
+  --color-background-danger: #fef2f2;
+  --color-text-primary: #111111;
+  --color-text-secondary: #666666;
+  --color-text-tertiary: #999999;
+  --color-text-danger: #dc2626;
+  --color-border-primary: #e0e0e0;
+  --color-border-secondary: #d0d0d0;
+  --color-border-tertiary: #eeeeee;
+  --color-border-danger: #fca5a5;
+  --border-radius-sm: 6px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:#f9f9f9;color:var(--color-text-primary);min-height:100vh}
+.app{max-width:680px;margin:0 auto;padding:.75rem 1rem 2rem}
+.nav{display:flex;gap:2px;background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:3px;margin-bottom:1.25rem;overflow-x:auto}
+.nav-btn{flex:1;min-width:72px;padding:7px 4px;border:none;background:transparent;border-radius:var(--border-radius-md);font-size:11px;font-weight:500;color:var(--color-text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav-btn i{font-size:16px}
+.nav-btn.active{background:var(--color-background-primary);color:#1D9E75;border:0.5px solid var(--color-border-tertiary);box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.screen{display:none}.screen.active{display:block}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:.875rem;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.card-title{font-size:15px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.card-sub{font-size:13px;color:var(--color-text-secondary);margin-bottom:1rem;line-height:1.5}
+.btn{padding:8px 16px;border-radius:var(--border-radius-md);font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid var(--color-border-secondary);transition:all .15s;display:inline-flex;align-items:center;gap:6px;background:transparent;color:var(--color-text-primary)}
+.btn:hover{background:var(--color-background-secondary)}
+.btn.primary{background:#1D9E75;border-color:#1D9E75;color:#fff}
+.btn.primary:hover{background:#0F6E56}
+.btn.tg{background:#2AABEE;border-color:#2AABEE;color:#fff}
+.btn.tg:hover{background:#1a8bc4}
+.btn.full{width:100%;justify-content:center}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn.danger{color:var(--color-text-danger);border-color:var(--color-border-danger)}
+.btn.danger:hover{background:var(--color-background-danger)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.field{margin-bottom:.875rem}
+.field label{display:block;font-size:11px;font-weight:500;color:var(--color-text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select,.field textarea{width:100%;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#1D9E75;box-shadow:0 0 0 2px rgba(29,158,117,0.1)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.radio-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:7px}
+.rc{border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:.625rem .875rem;cursor:pointer;transition:all .15s;user-select:none;background:var(--color-background-primary)}
+.rc:hover{border-color:#5DCAA5}
+.rc.sel{border:1.5px solid #1D9E75;background:#E1F5EE}
+.rc .rl{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.rc .rd{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.rc.sel .rl,.rc.sel .rd{color:#0F6E56}
+.goal-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.gc{border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:.875rem .5rem;cursor:pointer;transition:all .15s;text-align:center;user-select:none;background:var(--color-background-primary)}
+.gc:hover{border-color:#5DCAA5}
+.gc.sel{border:2px solid #1D9E75;background:#E1F5EE}
+.gc .gi{font-size:20px;margin-bottom:5px}
+.gc .gl{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.gc .gd{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.gc.sel .gl,.gc.sel .gd{color:#0F6E56}
+.tag-box{display:flex;flex-wrap:wrap;gap:5px;padding:7px 9px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);min-height:40px;align-items:center;cursor:text;background:var(--color-background-primary)}
+.tag-box:focus-within{box-shadow:0 0 0 2px rgba(29,158,117,0.1);border-color:#1D9E75}
+.tag{background:#E1F5EE;color:#0F6E56;border-radius:20px;padding:2px 9px;font-size:12px;display:flex;align-items:center;gap:4px}
+.tag .rx{cursor:pointer;opacity:.7;font-size:12px}
+.tag-box input{border:none;outline:none;background:transparent;font-size:13px;flex:1;min-width:80px;color:var(--color-text-primary)}
+.step-prog{display:flex;gap:5px;align-items:center;margin-bottom:1.25rem}
+.sdot{width:26px;height:26px;border-radius:50%;border:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--color-text-secondary);flex-shrink:0}
+.sdot.active{background:#1D9E75;border-color:#1D9E75;color:#fff}
+.sdot.done{background:#E1F5EE;border-color:#5DCAA5;color:#0F6E56}
+.sline{flex:1;height:0.5px;background:var(--color-border-tertiary)}
+.sline.done{background:#5DCAA5}
+.step-panel{display:none}.step-panel.active{display:block}
+.result-big{font-size:36px;font-weight:500;color:#1D9E75;line-height:1}
+.mstrip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:1rem}
+.mc{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem;text-align:center}
+.mc .mv{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.mc .ml{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.spinner{width:26px;height:26px;border:2px solid var(--color-border-tertiary);border-top-color:#1D9E75;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto .75rem}
+.spinner-sm{width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-box{text-align:center;padding:2.5rem;font-size:13px;color:var(--color-text-secondary)}
+.error-box{background:var(--color-background-danger);border:0.5px solid var(--color-border-danger);border-radius:var(--border-radius-md);padding:.75rem 1rem;color:var(--color-text-danger);font-size:13px;margin-top:.75rem}
+.success-box{background:#E1F5EE;border:0.5px solid #5DCAA5;border-radius:var(--border-radius-md);padding:.75rem 1rem;color:#0F6E56;font-size:13px;margin-top:.75rem;display:flex;align-items:center;gap:8px}
+.day-block{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:.625rem}
+.day-hdr{background:var(--color-background-secondary);padding:.5rem 1rem;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+.day-hdr:hover{background:#eee}
+.meal-row{display:flex;align-items:flex-start;gap:8px;padding:.5rem .25rem;border-bottom:0.5px solid var(--color-border-tertiary)}
+.meal-row:last-child{border-bottom:none}
+.mbadge{border-radius:20px;padding:2px 8px;font-size:11px;font-weight:500;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.mbadge.col{background:#E1F5EE;color:#0F6E56}
+.mbadge.pra{background:#E6F1FB;color:#185FA5}
+.mbadge.cen{background:#EEEDFE;color:#3C3489}
+.mbadge.spu{background:#FAEEDA;color:#633806}
+.cat-hdr{display:flex;align-items:center;gap:8px;padding:.5rem 0;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:.5rem}
+.cat-ic{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.item-row{display:flex;align-items:center;gap:8px;padding:.5rem .25rem;border-bottom:0.5px solid var(--color-border-tertiary)}
+.item-row:last-child{border-bottom:none}
+.item-row.done-item{opacity:.4}
+.item-row.done-item .iname{text-decoration:line-through}
+.cb{width:18px;height:18px;border-radius:4px;border:0.5px solid var(--color-border-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--color-background-primary)}
+.cb.chk{background:#1D9E75;border-color:#1D9E75}
+.cb.chk::after{content:'';display:block;width:4px;height:8px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg);margin-top:-2px}
+.iname{font-size:13px;color:var(--color-text-primary);flex:1}
+.prog-bar{background:var(--color-background-secondary);border-radius:20px;height:5px;overflow:hidden}
+.prog-fill{height:100%;background:#1D9E75;border-radius:20px;transition:width .3s}
+.recipe-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:.75rem}
+.badge{border-radius:20px;padding:2px 8px;font-size:11px;font-weight:500}
+.no-data{text-align:center;padding:1.5rem;font-size:13px;color:var(--color-text-secondary);background:var(--color-background-secondary);border-radius:var(--border-radius-md)}
+.ing-list{list-style:none;display:flex;flex-direction:column;gap:3px}
+.ing-list li{font-size:13px;color:var(--color-text-primary);display:flex;align-items:center;gap:6px}
+.ing-list li::before{content:'';width:5px;height:5px;border-radius:50%;background:#1D9E75;flex-shrink:0}
+.steps-ol{list-style:none;counter-reset:s;display:flex;flex-direction:column;gap:.625rem}
+.steps-ol li{font-size:13px;line-height:1.5;display:flex;gap:8px;counter-increment:s}
+.steps-ol li::before{content:counter(s);width:20px;height:20px;border-radius:50%;background:#E1F5EE;color:#0F6E56;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.chart-wrap{position:relative;height:180px;margin:.75rem 0}
+.upload-area{border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);padding:1.25rem;text-align:center;cursor:pointer;background:var(--color-background-secondary)}
+.upload-area:hover{border-color:#5DCAA5;background:#E1F5EE}
+.hidden{display:none}
+.toast{position:fixed;top:16px;right:16px;background:#1D9E75;color:#fff;border-radius:var(--border-radius-md);padding:.5rem 1rem;font-size:13px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.toast.show{opacity:1}
+.season-badge{display:inline-flex;align-items:center;gap:5px;background:#E1F5EE;border-radius:20px;padding:3px 10px;font-size:12px;color:#0F6E56;font-weight:500;margin-bottom:.875rem}
+.apikey-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1rem;text-align:center;background:#f9f9f9}
+.apikey-logo{width:56px;height:56px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem}
+.step-row{display:flex;gap:10px;margin-bottom:.875rem}
+.step-num{width:22px;height:22px;border-radius:50%;background:#E1F5EE;color:#0F6E56;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-text{font-size:13px;color:var(--color-text-primary);line-height:1.5;flex:1}
+.step-text a{color:#2AABEE;text-decoration:none}
+.step-text code{background:var(--color-background-secondary);border-radius:4px;padding:1px 5px;font-size:12px;font-family:var(--font-mono)}
+.tg-badge{display:flex;align-items:center;gap:8px;background:#E8F5FF;border:0.5px solid #9DD4F5;border-radius:var(--border-radius-md);padding:.625rem 1rem;font-size:12px;color:#1a6891;margin-bottom:.875rem}
+input[type=range]{width:100%;accent-color:#1D9E75}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- API KEY GATE -->
+<div id="apikeyGate">
+  <div class="apikey-screen">
+    <div class="apikey-logo"><i class="ti ti-salad" style="font-size:26px;color:#1D9E75"></i></div>
+    <h1 style="font-size:22px;font-weight:600;color:var(--color-text-primary);margin-bottom:.5rem">NutriPlan</h1>
+    <p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:.25rem">Il tuo piano nutrizionale personalizzato con AI</p>
+    <p style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:2rem">Menù stagionali · Lista spesa · Svuota frigo · Tracking misure</p>
+    <div style="background:#fff;border:0.5px solid #eee;border-radius:var(--border-radius-lg);padding:1.5rem;width:100%;max-width:440px;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+      <div style="font-size:14px;font-weight:500;margin-bottom:.5rem"><i class="ti ti-key" style="color:#1D9E75"></i> Inserisci la tua API key Anthropic</div>
+      <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:1rem">Salvata solo nel tuo browser — non viene mai trasmessa ad altri server.</p>
+      <div style="display:flex;gap:8px;margin-bottom:.75rem">
+        <input type="password" id="apikeyInput" placeholder="sk-ant-api03-..." style="flex:1;font-size:12px;font-family:var(--font-mono);padding:8px 10px;border:0.5px solid #ddd;border-radius:var(--border-radius-md);outline:none" onkeydown="if(event.key==='Enter')saveApiKey()">
+        <button class="btn primary" onclick="saveApiKey()"><i class="ti ti-check"></i> Entra</button>
+      </div>
+      <p style="font-size:11px;color:var(--color-text-tertiary)">Trovi la chiave su <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#1D9E75">console.anthropic.com</a> → API Keys</p>
+      <div id="apikeyErr" class="hidden" style="margin-top:.75rem;color:var(--color-text-danger);font-size:13px"></div>
+    </div>
+    <p style="font-size:11px;color:var(--color-text-tertiary);margin-top:1.5rem">⚠️ Uso personale. Non sostituisce il parere di un nutrizionista o medico.</p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" class="hidden">
+<div class="app">
+
+<div class="nav">
+  <button class="nav-btn active" onclick="goTo('configuratore')" id="nav-configuratore"><i class="ti ti-settings-2"></i>Configura</button>
+  <button class="nav-btn" onclick="goTo('menu')" id="nav-menu"><i class="ti ti-salad"></i>Menù</button>
+  <button class="nav-btn" onclick="goTo('spesa')" id="nav-spesa"><i class="ti ti-shopping-cart"></i>Spesa</button>
+  <button class="nav-btn" onclick="goTo('frigo')" id="nav-frigo"><i class="ti ti-fridge"></i>Frigo</button>
+  <button class="nav-btn" onclick="goTo('tracking')" id="nav-tracking"><i class="ti ti-chart-line"></i>Tracking</button>
+  <button class="nav-btn" onclick="goTo('impostazioni')" id="nav-impostazioni"><i class="ti ti-settings"></i>Setup</button>
+</div>
+
+<!-- CONFIGURATORE -->
+<div class="screen active" id="screen-configuratore">
+<div class="step-prog">
+  <div class="sdot active" id="sd0">1</div><div class="sline" id="sl0"></div>
+  <div class="sdot" id="sd1">2</div><div class="sline" id="sl1"></div>
+  <div class="sdot" id="sd2">3</div><div class="sline" id="sl2"></div>
+  <div class="sdot" id="sd3">4</div>
+</div>
+<div class="step-panel active" id="sp0">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-user"></i> Dati personali</div>
+    <div class="card-sub">Calcolano il tuo metabolismo basale (BMR) con la formula Mifflin-St Jeor.</div>
+    <div class="g2">
+      <div class="field"><label>Età</label><input type="number" id="age" min="15" max="90" placeholder="es. 30"></div>
+      <div class="field"><label>Sesso biologico</label><select id="sex"><option value="">Seleziona</option><option value="m">Maschio</option><option value="f">Femmina</option></select></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Peso (kg)</label><input type="number" id="weight" step="0.1" placeholder="es. 75"></div>
+      <div class="field"><label>Altezza (cm)</label><input type="number" id="height" placeholder="es. 175"></div>
+    </div>
+    <div class="field"><label>% massa grassa <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--color-text-tertiary)">(opzionale — migliora la precisione)</span></label><input type="number" id="bodyfat" step="0.1" placeholder="es. 18"></div>
+  </div>
+</div>
+<div class="step-panel" id="sp1">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-flame"></i> Attività & obiettivo</div>
+    <div class="card-sub">Il livello di attività è usato se non alleghi una scheda di allenamento.</div>
+    <div class="field"><label>Livello di attività quotidiana</label>
+      <div class="radio-grid" id="actGrid">
+        <div class="rc sel" data-v="1.2" onclick="selAct(this)"><div class="rl">Sedentario</div><div class="rd">Lavoro da scrivania</div></div>
+        <div class="rc" data-v="1.375" onclick="selAct(this)"><div class="rl">Lievemente attivo</div><div class="rd">1–3 sessioni/sett.</div></div>
+        <div class="rc" data-v="1.55" onclick="selAct(this)"><div class="rl">Moderatamente attivo</div><div class="rd">3–5 sessioni/sett.</div></div>
+        <div class="rc" data-v="1.725" onclick="selAct(this)"><div class="rl">Molto attivo</div><div class="rd">6–7 sessioni/sett.</div></div>
+        <div class="rc" data-v="1.9" onclick="selAct(this)"><div class="rl">Estremamente attivo</div><div class="rd">Lavoro fisico + sport</div></div>
+      </div>
+    </div>
+    <div class="field" style="margin-top:1rem"><label>Obiettivo</label>
+      <div class="goal-g" id="goalGrid">
+        <div class="gc" data-v="cut" onclick="selGoal(this)"><div class="gi"><i class="ti ti-trending-down" style="color:#E24B4A"></i></div><div class="gl">Cut</div><div class="gd">Perdita grasso</div></div>
+        <div class="gc sel" data-v="maintain" onclick="selGoal(this)"><div class="gi"><i class="ti ti-minus" style="color:#378ADD"></i></div><div class="gl">Mantenimento</div><div class="gd">Peso stabile</div></div>
+        <div class="gc" data-v="bulk" onclick="selGoal(this)"><div class="gi"><i class="ti ti-trending-up" style="color:#1D9E75"></i></div><div class="gl">Bulk</div><div class="gd">Aumento massa</div></div>
+      </div>
+    </div>
+    <div id="deltaWrap" style="display:none" class="field">
+      <label id="deltaLbl">Deficit (kcal/giorno)</label>
+      <input type="range" id="deltaRange" min="200" max="500" step="50" value="400">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-top:3px">
+        <span id="dMin">−200</span><span id="dCur" style="font-weight:500;color:#1D9E75">−400 kcal</span><span id="dMax">−500</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="step-panel" id="sp2">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-barbell"></i> Scheda di allenamento <span style="font-size:11px;font-weight:400;background:var(--color-background-secondary);border-radius:20px;padding:2px 8px;color:var(--color-text-secondary);margin-left:4px">opzionale</span></div>
+    <div class="card-sub">Allegare la scheda permette di calcolare il fabbisogno in modo più preciso. Il sistema estrae tipo di esercizi, frequenza e volume.</div>
+    <div class="upload-area" onclick="document.getElementById('schedaFile').click()">
+      <i class="ti ti-upload" style="font-size:22px;color:var(--color-text-secondary)"></i>
+      <div style="font-size:13px;color:var(--color-text-secondary);margin-top:6px">Clicca per caricare PDF o TXT</div>
+      <div style="font-size:12px;color:#1D9E75;margin-top:3px" id="schedaFileName"></div>
+    </div>
+    <input type="file" id="schedaFile" accept=".pdf,.txt,.docx" style="display:none" onchange="document.getElementById('schedaFileName').textContent=this.files[0]?.name||''">
+    <div style="text-align:center;font-size:12px;color:var(--color-text-secondary);margin:.75rem 0">oppure incolla il testo</div>
+    <div class="field"><textarea id="schedaText" rows="5" placeholder="Es: Lunedì — Petto & Tricipiti: Panca piana 4×8, Dips 3×10, Push-down 3×12..." style="font-size:13px;resize:vertical"></textarea></div>
+  </div>
+</div>
+<div class="step-panel" id="sp3">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-salad"></i> Preferenze alimentari</div>
+    <div class="field" style="margin-top:.25rem"><label>Regime alimentare</label>
+      <div class="radio-grid" id="dietGrid" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="rc sel" data-v="onnivoro" onclick="selDiet(this)"><div class="rl"><i class="ti ti-meat"></i> Onnivoro</div></div>
+        <div class="rc" data-v="vegetariano" onclick="selDiet(this)"><div class="rl"><i class="ti ti-leaf"></i> Vegetariano</div></div>
+        <div class="rc" data-v="vegano" onclick="selDiet(this)"><div class="rl"><i class="ti ti-plant"></i> Vegano</div></div>
+      </div>
+    </div>
+    <div class="field"><label>Cibi preferiti</label><div class="tag-box" id="prefBox" onclick="document.getElementById('prefIn').focus()"><input type="text" id="prefIn" placeholder="Es: pollo, riso... (Invio per aggiungere)" onkeydown="addTag(event,'pref')"></div></div>
+    <div class="field"><label>Intolleranze</label><div class="tag-box" id="intolBox" onclick="document.getElementById('intolIn').focus()"><input type="text" id="intolIn" placeholder="Es: lattosio, glutine... (Invio)" onkeydown="addTag(event,'intol')"></div></div>
+    <div class="field"><label>Allergie</label><div class="tag-box" id="allergyBox" onclick="document.getElementById('allergyIn').focus()"><input type="text" id="allergyIn" placeholder="Es: frutta secca, crostacei... (Invio)" onkeydown="addTag(event,'allergy')"></div></div>
+  </div>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem">
+  <button class="btn" id="btnBack" style="display:none" onclick="cfgBack()"><i class="ti ti-arrow-left"></i> Indietro</button>
+  <span style="font-size:12px;color:var(--color-text-secondary)" id="stepLbl">Passo 1 di 4</span>
+  <button class="btn primary" id="btnNext" onclick="cfgNext()">Avanti <i class="ti ti-arrow-right"></i></button>
+</div>
+</div>
+
+<!-- MENÙ -->
+<div class="screen" id="screen-menu">
+  <div id="menuGenForm" class="card">
+    <div class="card-title"><i class="ti ti-sparkles"></i> Genera menù settimanale</div>
+    <div class="card-sub" id="menuFormSub">Configura prima i tuoi dati nel tab Configura, oppure inserisci manualmente.</div>
+    <div id="seasonBadge" class="season-badge"><i class="ti ti-leaf"></i> <span id="seasonText"></span></div>
+    <div class="g3">
+      <div class="field"><label>Calorie/die</label><input type="number" id="mKcal" placeholder="es. 2200"></div>
+      <div class="field"><label>Proteine (g)</label><input type="number" id="mProt" placeholder="es. 160"></div>
+      <div class="field"><label>Carboidrati (g)</label><input type="number" id="mCarb" placeholder="es. 240"></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Regime</label><select id="mDiet"><option value="onnivoro">Onnivoro</option><option value="vegetariano">Vegetariano</option><option value="vegano">Vegano</option></select></div>
+      <div class="field"><label>Pasti/giorno</label><select id="mMeals"><option value="3">3 pasti</option><option value="4" selected>3 + 1 spuntino</option><option value="5">3 + 2 spuntini</option></select></div>
+    </div>
+    <div class="field"><label>Intolleranze / da evitare</label><input type="text" id="mNotes" placeholder="Es: senza lattosio, preferisco pollo..."></div>
+    <div class="field"><label>Stagionalità</label>
+      <select id="mSeason">
+        <option value="auto">Automatica (mese corrente)</option>
+        <option value="primavera">Primavera</option>
+        <option value="estate">Estate</option>
+        <option value="autunno">Autunno</option>
+        <option value="inverno">Inverno</option>
+        <option value="no">Non applicare</option>
+      </select>
+    </div>
+    <button class="btn primary full" onclick="generateMenu()"><i class="ti ti-sparkles"></i> Genera menù</button>
+    <div id="menuErr" class="hidden error-box"></div>
+  </div>
+  <div id="menuLoading" class="hidden"><div class="loading-box"><div class="spinner"></div><div id="menuLoadMsg">Genero il menù con prodotti di stagione...</div></div></div>
+  <div id="menuResult" class="hidden">
+    <div class="mstrip" id="menuMacros" style="margin-bottom:.75rem"></div>
+    <div id="menuSeasonInfo" style="margin-bottom:.875rem"></div>
+    <div id="menuDays"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:.75rem">
+      <button class="btn primary" onclick="sendToSpesa()"><i class="ti ti-shopping-cart"></i> Genera lista spesa</button>
+      <button class="btn" onclick="resetMenu()"><i class="ti ti-refresh"></i> Rigenera</button>
+    </div>
+  </div>
+</div>
+
+<!-- SPESA -->
+<div class="screen" id="screen-spesa">
+  <div id="spesaGenForm" class="card">
+    <div class="card-title"><i class="ti ti-shopping-cart"></i> Lista della spesa</div>
+    <div class="card-sub">Incolla il menù settimanale per estrarre automaticamente gli ingredienti, oppure aggiungili manualmente.</div>
+    <div class="field"><textarea id="spesaMenuText" rows="5" placeholder="Incolla qui il menù settimanale..." style="font-size:13px;resize:vertical"></textarea></div>
+    <button class="btn primary full" onclick="generateSpesa()"><i class="ti ti-sparkles"></i> Estrai ingredienti con AI</button>
+    <div id="spesaErr" class="hidden error-box"></div>
+  </div>
+  <div id="spesaLoading" class="hidden"><div class="loading-box"><div class="spinner"></div>Estraggo e organizzo gli ingredienti...</div></div>
+  <div id="spesaResult" class="hidden">
+    <div class="card" style="margin-bottom:.75rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+        <span style="font-size:13px;font-weight:500">Progresso acquisti</span>
+        <span style="font-size:12px;color:#1D9E75;font-weight:500" id="spesaProgLbl">0 / 0</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" id="spesaProgFill" style="width:0%"></div></div>
+      <div style="display:flex;gap:8px;margin-top:.75rem;flex-wrap:wrap">
+        <button class="btn sm" onclick="checkAllSpesa()"><i class="ti ti-checks"></i> Tutti</button>
+        <button class="btn sm" onclick="uncheckAllSpesa()"><i class="ti ti-square"></i> Nessuno</button>
+        <button class="btn sm danger" onclick="removeDoneSpesa()"><i class="ti ti-trash"></i> Rimuovi acquistati</button>
+        <button class="btn sm" onclick="resetSpesa()" style="margin-left:auto"><i class="ti ti-edit"></i> Nuova lista</button>
+      </div>
+    </div>
+    <div id="spesaCats"></div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:500;margin-bottom:.75rem">Aggiungi articolo</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <select id="addSpesaCat" style="font-size:13px;flex:none;width:150px;padding:8px 10px;border:0.5px solid #ddd;border-radius:var(--border-radius-md);outline:none"><option>Frutta e verdura</option><option>Proteine</option><option>Carboidrati</option><option>Latticini e uova</option><option>Condimenti e spezie</option><option>Altro</option></select>
+        <input type="text" id="addSpesaName" placeholder="Ingrediente" style="flex:1;min-width:100px" onkeydown="if(event.key==='Enter')addSpesaItem()">
+        <input type="text" id="addSpesaQty" placeholder="Qtà" style="width:80px" onkeydown="if(event.key==='Enter')addSpesaItem()">
+        <button class="btn primary" onclick="addSpesaItem()"><i class="ti ti-plus"></i></button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:.25rem">
+      <button class="btn full" style="flex:1" onclick="copySpesa()"><i class="ti ti-copy"></i> Copia lista</button>
+      <button class="btn tg full" style="flex:1" id="tgSendBtn" onclick="sendToTelegram()"><i class="ti ti-brand-telegram"></i> Invia su Telegram</button>
+    </div>
+    <div id="tgSendMsg" class="hidden" style="margin-top:.5rem"></div>
+    <div id="tgWarning" class="hidden" style="margin-top:.5rem;font-size:12px;color:var(--color-text-secondary);background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.625rem .875rem">
+      <i class="ti ti-info-circle"></i> Telegram non configurato. <button onclick="goTo('impostazioni')" style="border:none;background:none;color:#2AABEE;cursor:pointer;font-size:12px;font-weight:500;padding:0">Configura in Setup →</button>
+    </div>
+  </div>
+</div>
+
+<!-- FRIGO -->
+<div class="screen" id="screen-frigo">
+  <div id="frigoForm">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-fridge"></i> Svuota frigo</div>
+      <div class="card-sub">Inserisci gli ingredienti disponibili e ricevi ricette bilanciate con procedimento dettagliato.</div>
+      <div class="field"><label>Ingredienti disponibili</label><div class="tag-box" id="frigoIngBox" onclick="document.getElementById('frigoIngIn').focus()"><input type="text" id="frigoIngIn" placeholder="Es: uova, zucchine, tonno... (Invio)" onkeydown="addTag(event,'frigoIng')"></div></div>
+      <div class="field"><label>Da escludere</label><div class="tag-box" id="frigoExcBox" onclick="document.getElementById('frigoExcIn').focus()"><input type="text" id="frigoExcIn" placeholder="Es: cipolla, glutine... (Invio)" onkeydown="addTag(event,'frigoExc')"></div></div>
+      <div class="g2">
+        <div class="field"><label>Tipo pasto</label><select id="frigoMeal"><option value="qualsiasi">Qualsiasi</option><option value="colazione">Colazione</option><option value="pranzo">Pranzo</option><option value="cena">Cena</option><option value="spuntino">Spuntino</option></select></div>
+        <div class="field"><label>N° ricette</label><select id="frigoNum"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Kcal/porzione (opz.)</label><input type="number" id="frigoKcal" placeholder="es. 500"></div>
+        <div class="field"><label>Tempo max</label><select id="frigoTime"><option value="qualsiasi">Qualsiasi</option><option value="15">15 min</option><option value="30" selected>30 min</option><option value="60">60 min</option></select></div>
+      </div>
+      <button class="btn primary full" onclick="generateFrigo()"><i class="ti ti-chef-hat"></i> Trova ricette</button>
+      <div id="frigoErr" class="hidden error-box"></div>
+    </div>
+  </div>
+  <div id="frigoLoading" class="hidden"><div class="loading-box"><div class="spinner"></div><div id="frigoLoadMsg">Cerco le ricette migliori...</div></div></div>
+  <div id="frigoResult" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.875rem">
+      <span style="font-size:14px;font-weight:500" id="frigoResultTitle">Ricette trovate</span>
+      <button class="btn sm" onclick="resetFrigo()"><i class="ti ti-arrow-left"></i> Modifica</button>
+    </div>
+    <div id="frigoRecipes"></div>
+  </div>
+</div>
+
+<!-- TRACKING -->
+<div class="screen" id="screen-tracking">
+  <div style="display:flex;gap:2px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:3px;margin-bottom:1rem">
+    <button onclick="trackTab('ins')" id="tb-ins" style="flex:1;padding:6px;border:none;background:#1D9E75;border-radius:var(--border-radius-md);font-size:12px;font-weight:500;color:#fff;cursor:pointer">Inserisci</button>
+    <button onclick="trackTab('and')" id="tb-and" style="flex:1;padding:6px;border:none;background:transparent;border-radius:var(--border-radius-md);font-size:12px;font-weight:500;color:var(--color-text-secondary);cursor:pointer">Andamento</button>
+    <button onclick="trackTab('obj')" id="tb-obj" style="flex:1;padding:6px;border:none;background:transparent;border-radius:var(--border-radius-md);font-size:12px;font-weight:500;color:var(--color-text-secondary);cursor:pointer">Obiettivo</button>
+  </div>
+  <div id="tp-ins">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-ruler-measure"></i> Nuova rilevazione</div>
+      <div class="g2"><div class="field"><label>Data</label><input type="date" id="tDate"></div><div class="field"><label>Peso (kg)</label><input type="number" id="tWeight" step="0.1" placeholder="es. 78.5"></div></div>
+      <div style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.625rem">Circonferenze cm — opzionale</div>
+      <div class="g3"><div class="field"><label>Vita</label><input type="number" id="tWaist" step="0.5" placeholder="82"></div><div class="field"><label>Fianchi</label><input type="number" id="tHips" step="0.5" placeholder="98"></div><div class="field"><label>% grasso</label><input type="number" id="tBf" step="0.1" placeholder="18"></div></div>
+      <div class="field"><label>Note</label><input type="text" id="tNote" placeholder="Es: settimana di carico, stress lavorativo..."></div>
+      <button class="btn primary full" onclick="saveEntry()"><i class="ti ti-plus"></i> Salva rilevazione</button>
+      <div id="tSaveMsg" class="hidden" style="margin-top:.625rem;background:#E1F5EE;border-radius:var(--border-radius-md);padding:.5rem .875rem;font-size:13px;color:#0F6E56"><i class="ti ti-check"></i> Rilevazione salvata.</div>
+      <div id="tErr" class="hidden error-box"></div>
+    </div>
+    <div class="card"><div class="card-title" style="margin-bottom:.875rem"><i class="ti ti-history"></i> Storico rilevazioni</div><div id="tHistory"><div class="no-data">Nessuna rilevazione inserita.</div></div></div>
+  </div>
+  <div id="tp-and" style="display:none">
+    <div class="card"><div class="card-title" style="margin-bottom:.875rem"><i class="ti ti-chart-line"></i> Peso nel tempo</div><div id="chartWeight"><div class="no-data">Servono almeno 2 rilevazioni.</div></div></div>
+    <div class="card"><div class="card-title" style="margin-bottom:.875rem"><i class="ti ti-chart-area"></i> Circonferenze</div><div id="chartCircum"><div class="no-data">Nessun dato circonferenze.</div></div></div>
+    <div class="card"><div id="statsGrid"><div class="no-data">Nessun dato.</div></div></div>
+  </div>
+  <div id="tp-obj" style="display:none">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:.875rem"><i class="ti ti-target"></i> Imposta obiettivo</div>
+      <div class="g2"><div class="field"><label>Peso iniziale (kg)</label><input type="number" id="gStart" step="0.1" placeholder="es. 85"></div><div class="field"><label>Peso target (kg)</label><input type="number" id="gTarget" step="0.1" placeholder="es. 78"></div></div>
+      <div class="g2"><div class="field"><label>Tipo</label><select id="gType"><option value="cut">Cut</option><option value="maintain">Mantenimento</option><option value="bulk">Bulk</option></select></div><div class="field"><label>Scadenza</label><input type="date" id="gDeadline"></div></div>
+      <button class="btn primary full" onclick="saveGoal()"><i class="ti ti-check"></i> Salva obiettivo</button>
+    </div>
+    <div id="goalDisplay" class="hidden card"></div>
+  </div>
+</div>
+
+<!-- IMPOSTAZIONI -->
+<div class="screen" id="screen-impostazioni">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-key"></i> API key Anthropic</div>
+    <div class="card-sub">Salvata solo nel tuo browser, non trasmessa a terzi.</div>
+    <div id="keyCurrentDisplay" style="margin-bottom:1rem"></div>
+    <div class="field"><label>Aggiorna API key</label>
+      <div style="display:flex;gap:8px"><input type="password" id="newKeyInput" placeholder="sk-ant-api03-..." style="flex:1;font-family:var(--font-mono);font-size:12px"><button class="btn primary" onclick="updateApiKey()"><i class="ti ti-check"></i> Aggiorna</button></div>
+    </div>
+    <button class="btn danger" onclick="deleteApiKey()"><i class="ti ti-trash"></i> Rimuovi chiave e disconnetti</button>
+    <div id="settingsMsg" class="hidden success-box" style="margin-top:.75rem"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="ti ti-brand-telegram" style="color:#2AABEE"></i> Integrazione Telegram</div>
+    <div class="card-sub">Ricevi la lista della spesa direttamente su Telegram.</div>
+    <div id="tgConfigured" class="hidden tg-badge">
+      <i class="ti ti-check"></i>
+      <span>Telegram configurato — <strong id="tgBotName"></strong></span>
+      <button class="btn sm danger" onclick="resetTelegram()" style="margin-left:auto">Rimuovi</button>
+    </div>
+    <div id="tgSetupSteps">
+      <div style="font-size:13px;font-weight:500;margin-bottom:.875rem">Come configurare (3 minuti):</div>
+      <div class="step-row"><div class="step-num">1</div><div class="step-text">Apri Telegram → cerca <a href="https://t.me/BotFather" target="_blank">@BotFather</a> → scrivi <code>/newbot</code> → copia il <strong>Bot Token</strong>.</div></div>
+      <div class="step-row"><div class="step-num">2</div><div class="step-text">Cerca <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a> → scrivi <code>/start</code> → copia il tuo <strong>Chat ID</strong> (numero).</div></div>
+      <div class="step-row"><div class="step-num">3</div><div class="step-text">Apri il tuo bot su Telegram e scrivi <code>/start</code> per attivarlo. Poi incolla qui sotto e clicca Salva.</div></div>
+      <div class="field"><label>Bot Token</label><input type="password" id="tgToken" placeholder="123456789:ABCdef..." style="font-family:var(--font-mono);font-size:12px"></div>
+      <div class="field"><label>Chat ID</label><input type="text" id="tgChatId" placeholder="es. 734571285"></div>
+      <button class="btn tg full" id="tgSaveBtn" onclick="saveTelegram()"><i class="ti ti-brand-telegram"></i> Verifica e salva</button>
+      <div id="tgSaveMsg" class="hidden" style="margin-top:.75rem"></div>
+    </div>
+  </div>
+
+  <div class="card" style="background:var(--color-background-secondary)">
+    <div style="font-size:13px;font-weight:500;margin-bottom:.5rem"><i class="ti ti-shield-check"></i> Privacy</div>
+    <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6">API key Anthropic, Bot Token e Chat ID sono salvati solo nel tuo browser (localStorage). Nessun dato viene trasmesso a server intermedi. Le chiamate AI vanno direttamente ad Anthropic, quelle Telegram direttamente a Telegram.</div>
+    <div style="margin-top:.75rem;font-size:12px;color:var(--color-text-tertiary)">⚠️ NutriPlan è uno strumento di supporto. Non sostituisce il parere di un nutrizionista o medico qualificato.</div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const S={
+  cfg:{age:null,sex:'',weight:null,height:null,bf:null,activity:1.2,goal:'maintain',delta:0,diet:'onnivoro',pref:[],intol:[],allergy:[],done:false},
+  tdee:{bmr:0,tdee:0,target:0,prot:0,carb:0,fat:0},
+  menu:null,spesaItems:[],
+  trackEntries:JSON.parse(localStorage.getItem('np_entries')||'[]'),
+  trackGoal:JSON.parse(localStorage.getItem('np_goal')||'null'),
+  tags:{pref:[],intol:[],allergy:[],frigoIng:[],frigoExc:[]}
+};
+let cfgStep=0,wChart=null,cChart=null;
+const DAY_NAMES=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
+const CAT_ORDER=['Frutta e verdura','Proteine','Carboidrati','Latticini e uova','Condimenti e spezie','Altro'];
+const CAT_META={'Frutta e verdura':{ic:'ti-plant-2',bg:'#E1F5EE',cl:'#0F6E56'},'Proteine':{ic:'ti-meat',bg:'#FAECE7',cl:'#712B13'},'Carboidrati':{ic:'ti-bread',bg:'#FAEEDA',cl:'#633806'},'Latticini e uova':{ic:'ti-egg',bg:'#E6F1FB',cl:'#0C447C'},'Condimenti e spezie':{ic:'ti-bottle',bg:'#EEEDFE',cl:'#3C3489'},'Altro':{ic:'ti-shopping-bag',bg:'#F1EFE8',cl:'#444441'}};
+const STAGIONI={primavera:{mesi:[3,4,5],label:'Primavera',icon:'ti-plant-2',prodotti:'asparagi, piselli, fave, carciofi, spinaci, fragole, agretti, ravanelli, erbe aromatiche fresche'},estate:{mesi:[6,7,8],label:'Estate',icon:'ti-sun',prodotti:'pomodori, melanzane, zucchine, peperoni, cetrioli, basilico, anguria, pesche, albicocche, fagiolini, mais'},autunno:{mesi:[9,10,11],label:'Autunno',icon:'ti-leaf',prodotti:'funghi porcini, zucca, cavolo, broccoli, uva, pere, mele, castagne, radicchio, finocchi, cachi'},inverno:{mesi:[12,1,2],label:'Inverno',icon:'ti-snowflake',prodotti:'cavolo nero, verza, cavolfiore, arance, mandarini, kiwi, cardi, porri, topinambur, agrumi, rape'}};
+
+function getStagioneCorrente(){const m=new Date().getMonth()+1;return Object.entries(STAGIONI).find(([,v])=>v.mesi.includes(m))?.[0]||'primavera';}
+function getStagioneEffettiva(){const sel=document.getElementById('mSeason')?.value||'auto';if(sel==='no')return null;if(sel==='auto')return getStagioneCorrente();return sel;}
+function initSeasonBadge(){const s=getStagioneCorrente();const info=STAGIONI[s];const mesi=['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];const m=new Date().getMonth()+1;document.getElementById('seasonText').textContent=info.label+' · '+mesi[m]+' · prodotti stagionali attivi';}
+function getKey(){return localStorage.getItem('np_apikey')||'';}
+function getTgConfig(){return{token:localStorage.getItem('np_tg_token')||'',chatId:localStorage.getItem('np_tg_chatid')||''};}
+
+function saveApiKey(){
+  const v=document.getElementById('apikeyInput').value.trim();
+  const err=document.getElementById('apikeyErr');
+  if(!v.startsWith('sk-ant-')){err.textContent='Chiave non valida. Deve iniziare con sk-ant-';err.classList.remove('hidden');return;}
+  localStorage.setItem('np_apikey',v);
+  document.getElementById('apikeyGate').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
+  renderKeyDisplay();renderTrackHistory();initSeasonBadge();
+}
+function updateApiKey(){const v=document.getElementById('newKeyInput').value.trim();if(!v.startsWith('sk-ant-')){showToast('Chiave non valida');return;}localStorage.setItem('np_apikey',v);document.getElementById('newKeyInput').value='';renderKeyDisplay();const m=document.getElementById('settingsMsg');m.innerHTML='<i class="ti ti-check"></i> Chiave aggiornata.';m.classList.remove('hidden');setTimeout(()=>m.classList.add('hidden'),2500);}
+function deleteApiKey(){if(!confirm('Rimuovere la chiave? Dovrai reinserirla al prossimo accesso.'))return;localStorage.removeItem('np_apikey');document.getElementById('mainApp').classList.add('hidden');document.getElementById('apikeyGate').classList.remove('hidden');document.getElementById('apikeyInput').value='';}
+function renderKeyDisplay(){const k=getKey();document.getElementById('keyCurrentDisplay').innerHTML=k?`<div style="display:flex;align-items:center;gap:8px;background:#E1F5EE;border-radius:var(--border-radius-md);padding:.5rem .875rem;font-size:12px;color:#0F6E56"><i class="ti ti-check"></i><span style="font-family:var(--font-mono);flex:1">${k.slice(0,12)}••••••••••••${k.slice(-4)}</span><span style="font-size:11px;opacity:.7">attiva</span></div>`:'';}
+
+async function saveTelegram(){
+  const token=document.getElementById('tgToken').value.trim(),chatId=document.getElementById('tgChatId').value.trim();
+  const msg=document.getElementById('tgSaveMsg');msg.className='hidden';
+  if(!token||!chatId){showToast('Inserisci Bot Token e Chat ID','#E24B4A');return;}
+  const btn=document.getElementById('tgSaveBtn');btn.disabled=true;btn.innerHTML='<div class="spinner-sm"></div> Verifico...';
+  try{
+    const res=await fetch(`https://api.telegram.org/bot${token}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text:`✅ *NutriPlan — Connessione riuscita!*\n\nIl tuo bot è configurato correttamente. Da ora riceverai le liste della spesa su Telegram.\n\n_${new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}_`,parse_mode:'Markdown'})});
+    const data=await res.json();
+    if(!data.ok)throw new Error(data.description||'Errore Telegram');
+    localStorage.setItem('np_tg_token',token);localStorage.setItem('np_tg_chatid',chatId);
+    msg.className='success-box';msg.innerHTML='<i class="ti ti-check"></i> Configurazione salvata! Controlla Telegram — ti è arrivato un messaggio di conferma.';msg.classList.remove('hidden');
+    setTimeout(()=>renderTgStatus(),1200);
+  }catch(e){msg.className='error-box';msg.textContent='Errore: '+e.message;msg.classList.remove('hidden');}
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-brand-telegram"></i> Verifica e salva';
+}
+function resetTelegram(){if(!confirm('Rimuovere la configurazione Telegram?'))return;localStorage.removeItem('np_tg_token');localStorage.removeItem('np_tg_chatid');renderTgStatus();showToast('Configurazione rimossa');}
+function renderTgStatus(){const{token,chatId}=getTgConfig();if(token&&chatId){document.getElementById('tgConfigured').classList.remove('hidden');document.getElementById('tgSetupSteps').classList.add('hidden');document.getElementById('tgBotName').textContent=token.split(':')[0]+':*****';}else{document.getElementById('tgConfigured').classList.add('hidden');document.getElementById('tgSetupSteps').classList.remove('hidden');}}
+
+async function sendToTelegram(){
+  const{token,chatId}=getTgConfig();
+  if(!token||!chatId){document.getElementById('tgWarning').classList.remove('hidden');return;}
+  const btn=document.getElementById('tgSendBtn');const msgEl=document.getElementById('tgSendMsg');msgEl.className='hidden';
+  btn.disabled=true;btn.innerHTML='<div class="spinner-sm"></div> Invio...';
+  const todo=S.spesaItems.filter(i=>!i.done);
+  if(!todo.length){showToast('Nessun articolo da inviare','#E24B4A');btn.disabled=false;btn.innerHTML='<i class="ti ti-brand-telegram"></i> Invia su Telegram';return;}
+  const g={};CAT_ORDER.forEach(c=>g[c]=[]);todo.forEach(it=>{const c=CAT_ORDER.includes(it.cat)?it.cat:'Altro';g[c].push(it);});
+  const em={'Frutta e verdura':'🥦','Proteine':'🥩','Carboidrati':'🍝','Latticini e uova':'🥚','Condimenti e spezie':'🫙','Altro':'🧴'};
+  const now=new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
+  let txt=`🛒 *Lista della spesa — ${now}*\n\n`;
+  CAT_ORDER.forEach(cat=>{const its=g[cat];if(!its.length)return;txt+=`*${em[cat]||'•'} ${cat}*\n`;its.forEach(i=>txt+=`• ${i.name} — ${i.qty}\n`);txt+='\n';});
+  txt+=`_Generata da NutriPlan_`;
+  try{
+    const res=await fetch(`https://api.telegram.org/bot${token}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text:txt,parse_mode:'Markdown'})});
+    const data=await res.json();
+    if(!data.ok)throw new Error(data.description||'Errore');
+    msgEl.className='success-box';msgEl.innerHTML=`<i class="ti ti-brand-telegram"></i> Lista inviata su Telegram! (${todo.length} articoli)`;msgEl.classList.remove('hidden');showToast('Lista inviata! ✈️');
+  }catch(e){msgEl.className='error-box';msgEl.textContent='Errore: '+e.message;msgEl.classList.remove('hidden');}
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-brand-telegram"></i> Invia su Telegram';
+}
+
+function showToast(msg,color='#1D9E75'){const t=document.getElementById('toast');t.textContent=msg;t.style.background=color;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+function goTo(s){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('screen-'+s).classList.add('active');document.getElementById('nav-'+s).classList.add('active');if(s==='tracking')renderTrackHistory();if(s==='impostazioni'){renderKeyDisplay();renderTgStatus();}}
+function addTag(e,type){if(e.key!=='Enter')return;const ids={pref:'prefIn',intol:'intolIn',allergy:'allergyIn',frigoIng:'frigoIngIn',frigoExc:'frigoExcIn'};const boxes={pref:'prefBox',intol:'intolBox',allergy:'allergyBox',frigoIng:'frigoIngBox',frigoExc:'frigoExcBox'};const inp=document.getElementById(ids[type]);const v=inp.value.trim();if(!v||S.tags[type].includes(v)){inp.value='';return;}S.tags[type].push(v);const box=document.getElementById(boxes[type]);const t=document.createElement('div');t.className='tag';t.innerHTML=v+'<span class="rx" onclick="rmTag(this,\''+type+'\',\''+v.replace(/'/g,"\\'")+'\')">×</span>';box.insertBefore(t,inp);inp.value='';}
+function rmTag(el,type,v){S.tags[type]=S.tags[type].filter(x=>x!==v);el.parentElement.remove();}
+function selAct(el){document.querySelectorAll('#actGrid .rc').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');S.cfg.activity=parseFloat(el.dataset.v);}
+function selGoal(el){document.querySelectorAll('#goalGrid .gc').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');S.cfg.goal=el.dataset.v;const dw=document.getElementById('deltaWrap'),dr=document.getElementById('deltaRange');if(S.cfg.goal==='maintain'){dw.style.display='none';S.cfg.delta=0;return;}dw.style.display='block';if(S.cfg.goal==='cut'){document.getElementById('deltaLbl').textContent='Deficit (kcal/giorno)';document.getElementById('dMin').textContent='−200';document.getElementById('dMax').textContent='−500';dr.value=400;document.getElementById('dCur').textContent='−400 kcal';S.cfg.delta=-400;}else{document.getElementById('deltaLbl').textContent='Surplus (kcal/giorno)';document.getElementById('dMin').textContent='+200';document.getElementById('dMax').textContent='+500';dr.value=350;document.getElementById('dCur').textContent='+350 kcal';S.cfg.delta=350;}}
+document.getElementById('deltaRange').addEventListener('input',function(){const v=parseInt(this.value);if(S.cfg.goal==='cut'){S.cfg.delta=-v;document.getElementById('dCur').textContent='−'+v+' kcal';}else{S.cfg.delta=v;document.getElementById('dCur').textContent='+'+v+' kcal';}});
+function selDiet(el){document.querySelectorAll('#dietGrid .rc').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');S.cfg.diet=el.dataset.v;}
+function updateStepUI(){for(let i=0;i<4;i++){const d=document.getElementById('sd'+i),l=i<3?document.getElementById('sl'+i):null;document.getElementById('sp'+i).classList.toggle('active',i===cfgStep);if(i<cfgStep){d.className='sdot done';d.innerHTML='<i class="ti ti-check" style="font-size:11px"></i>';if(l)l.className='sline done';}else if(i===cfgStep){d.className='sdot active';d.textContent=i+1;}else{d.className='sdot';d.textContent=i+1;if(l)l.className='sline';}}document.getElementById('stepLbl').textContent='Passo '+(cfgStep+1)+' di 4';document.getElementById('btnBack').style.display=cfgStep>0?'inline-flex':'none';}
+function cfgNext(){if(cfgStep===0){const age=document.getElementById('age').value,sex=document.getElementById('sex').value,w=document.getElementById('weight').value,h=document.getElementById('height').value;if(!age||!sex||!w||!h){showToast('Compila tutti i campi obbligatori','#E24B4A');return;}S.cfg.age=parseInt(age);S.cfg.sex=sex;S.cfg.weight=parseFloat(w);S.cfg.height=parseFloat(h);S.cfg.bf=parseFloat(document.getElementById('bodyfat').value)||null;}if(cfgStep===3){computeTDEE();return;}cfgStep++;updateStepUI();}
+function cfgBack(){if(cfgStep>0){cfgStep--;updateStepUI();}}
+function computeTDEE(){const{age,sex,weight,height,bf,activity,goal,delta,diet}=S.cfg;let bmr;if(bf){const lbm=weight*(1-bf/100);bmr=Math.round(370+21.6*lbm);}else{bmr=sex==='m'?Math.round(10*weight+6.25*height-5*age+5):Math.round(10*weight+6.25*height-5*age-161);}const tdee=Math.round(bmr*activity),target=tdee+delta;const prot=Math.round(weight*(goal==='cut'?2.2:goal==='bulk'?2.0:1.8));const fatKcal=Math.round(target*0.28),fat=Math.round(fatKcal/9),carb=Math.round((target-prot*4-fatKcal)/4);S.tdee={bmr,tdee,target,prot,carb,fat};S.cfg.done=true;S.cfg.pref=S.tags.pref;S.cfg.intol=S.tags.intol;S.cfg.allergy=S.tags.allergy;document.getElementById('btnNext').innerHTML='<i class="ti ti-check"></i> Fatto!';document.getElementById('btnNext').disabled=true;const gl={cut:'Cut — deficit calorico',maintain:'Mantenimento',bulk:'Bulk — surplus calorico'};document.getElementById('sp3').innerHTML=`<div class="card" style="text-align:center;padding:1.5rem"><div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.5rem">Calorie giornaliere target</div><div class="result-big">${target} kcal/die</div><div style="font-size:13px;color:var(--color-text-secondary);margin-top:.5rem">${gl[goal]} · regime ${diet}</div><div class="mstrip" style="margin-top:1.25rem"><div class="mc"><div class="mv">${bmr}</div><div class="ml">BMR kcal</div></div><div class="mc"><div class="mv" style="color:#1D9E75">${prot}g</div><div class="ml">Proteine</div></div><div class="mc"><div class="mv" style="color:#378ADD">${carb}g</div><div class="ml">Carboidrati</div></div><div class="mc"><div class="mv" style="color:#BA7517">${fat}g</div><div class="ml">Grassi</div></div></div></div><button class="btn primary full" onclick="goToMenu()"><i class="ti ti-salad"></i> Genera menù settimanale</button>`;}
+function goToMenu(){if(S.cfg.done){document.getElementById('mKcal').value=S.tdee.target;document.getElementById('mProt').value=S.tdee.prot;document.getElementById('mCarb').value=S.tdee.carb;document.getElementById('mDiet').value=S.cfg.diet;const n=[...S.cfg.intol,...S.cfg.allergy].join(', ');if(n)document.getElementById('mNotes').value='Evitare: '+n;document.getElementById('menuFormSub').textContent='Dati importati dal configuratore — modificabili prima di generare.';}goTo('menu');}
+
+async function callAI(prompt,maxTokens=4000){const key=getKey();if(!key){showToast('API key mancante — vai su Setup','#E24B4A');return null;}const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})});const data=await res.json();if(data.error)throw new Error(data.error.message);return data.content.map(b=>b.type==='text'?b.text:'').join('').trim().replace(/```json|```/g,'').trim();}
+
+async function generateMenu(){
+  const kcal=document.getElementById('mKcal').value,prot=document.getElementById('mProt').value,carb=document.getElementById('mCarb').value,diet=document.getElementById('mDiet').value,meals=document.getElementById('mMeals').value,notes=document.getElementById('mNotes').value;
+  const err=document.getElementById('menuErr');err.classList.add('hidden');
+  if(!kcal){err.textContent='Inserisci almeno le calorie target.';err.classList.remove('hidden');return;}
+  const stagKey=getStagioneEffettiva();const stagInfo=stagKey?STAGIONI[stagKey]:null;
+  const stagPrompt=stagInfo?`\n- Stagione: ${stagInfo.label}. Privilegia OBBLIGATORIAMENTE prodotti di stagione italiani: ${stagInfo.prodotti}. Almeno il 70% degli ingredienti vegetali deve essere di stagione.`:'';
+  document.getElementById('menuGenForm').classList.add('hidden');document.getElementById('menuLoading').classList.remove('hidden');
+  const msgs=['Genero il menù con prodotti di stagione...','Bilanciando i macronutrienti su 7 giorni...','Selezionando ingredienti stagionali italiani...','Rifinendo i dettagli...'];
+  let mi=0;const iv=setInterval(()=>{mi=(mi+1)%msgs.length;document.getElementById('menuLoadMsg').textContent=msgs[mi];},2200);
+  const prompt=`Sei un nutrizionista esperto italiano. Genera un menù settimanale (7 giorni) con queste specifiche:\n- Calorie: ${kcal} kcal/die · Proteine: ${prot||'auto'}g · Carboidrati: ${carb||'auto'}g\n- Regime: ${diet} · Pasti/giorno: ${meals}\n- Note: ${notes||'nessuna'}${stagPrompt}\nRispondi SOLO con JSON valido senza backtick:\n{"kcal_media":2200,"prot_media":160,"carb_media":240,"fat_media":65,"stagione":"${stagInfo?.label||'Non applicata'}","giorni":[{"kcal_totale":2200,"pasti":[{"tipo":"Colazione","descrizione":"Fiocchi d'avena con latte e fragole fresche","kcal":420},{"tipo":"Pranzo","descrizione":"Pasta integrale con ragù di tacchino e piselli freschi","kcal":580},{"tipo":"Cena","descrizione":"Salmone al forno con asparagi e limone","kcal":520}]}]}\n7 elementi giorni = Lun–Dom. Varia ogni giorno. Totali coerenti con target.`;
+  try{const txt=await callAI(prompt);clearInterval(iv);S.menu=JSON.parse(txt);document.getElementById('menuLoading').classList.add('hidden');renderMenu(stagInfo);}
+  catch(e){clearInterval(iv);document.getElementById('menuLoading').classList.add('hidden');document.getElementById('menuGenForm').classList.remove('hidden');err.textContent='Errore: '+e.message;err.classList.remove('hidden');}
+}
+
+function renderMenu(stagInfo){
+  const m=S.menu;
+  document.getElementById('menuMacros').innerHTML=`<div class="mc"><div class="mv" style="color:#1D9E75">${m.kcal_media}</div><div class="ml">kcal/die</div></div><div class="mc"><div class="mv">${m.prot_media}g</div><div class="ml">proteine</div></div><div class="mc"><div class="mv" style="color:#378ADD">${m.carb_media}g</div><div class="ml">carboidrati</div></div><div class="mc"><div class="mv" style="color:#BA7517">${m.fat_media}g</div><div class="ml">grassi</div></div>`;
+  document.getElementById('menuSeasonInfo').innerHTML=stagInfo?`<div style="display:flex;align-items:center;gap:8px;background:#E1F5EE;border-radius:var(--border-radius-md);padding:.625rem 1rem;font-size:12px;color:#0F6E56"><i class="ti ${stagInfo.icon}"></i><span><strong>${stagInfo.label}</strong> — menù costruito con prodotti di stagione italiani</span></div>`:'';
+  const db=document.getElementById('menuDays');db.innerHTML='';
+  m.giorni.forEach((g,i)=>{
+    const mh=g.pasti.map(p=>{const t=p.tipo.toLowerCase();const bc=t.includes('colazione')?'col':t.includes('pranzo')?'pra':t.includes('cena')?'cen':'spu';return`<div class="meal-row"><span class="mbadge ${bc}">${p.tipo}</span><span style="flex:1;font-size:13px">${p.descrizione}</span><span style="font-size:12px;color:var(--color-text-secondary);white-space:nowrap">${p.kcal} kcal</span></div>`;}).join('');
+    const div=document.createElement('div');div.className='day-block';
+    div.innerHTML=`<div class="day-hdr" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'"><span style="font-size:13px;font-weight:500">${DAY_NAMES[i]}</span><span style="font-size:12px;color:#1D9E75;font-weight:500">${g.kcal_totale} kcal</span></div><div style="padding:0 1rem;display:block">${mh}</div>`;
+    db.appendChild(div);
+  });
+  document.getElementById('menuResult').classList.remove('hidden');
+}
+
+function sendToSpesa(){if(!S.menu)return;let txt='';S.menu.giorni.forEach((g,i)=>{txt+=DAY_NAMES[i]+'\n';g.pasti.forEach(p=>{txt+=p.tipo+': '+p.descrizione+'\n';});txt+='\n';});document.getElementById('spesaMenuText').value=txt;goTo('spesa');generateSpesa();}
+function resetMenu(){S.menu=null;document.getElementById('menuResult').classList.add('hidden');document.getElementById('menuGenForm').classList.remove('hidden');}
+
+async function generateSpesa(){
+  const txt=document.getElementById('spesaMenuText').value.trim();const err=document.getElementById('spesaErr');err.classList.add('hidden');
+  if(!txt){err.textContent='Incolla il menù prima di procedere.';err.classList.remove('hidden');return;}
+  document.getElementById('spesaGenForm').classList.add('hidden');document.getElementById('spesaLoading').classList.remove('hidden');
+  const prompt=`Analizza il menù ed estrai tutti gli ingredienti.\nMENÙ:\n${txt}\nRispondi SOLO con JSON senza backtick:\n{"items":[{"cat":"Frutta e verdura","name":"Banana","qty":"7 pz"}]}\nCategorie: "Frutta e verdura","Proteine","Carboidrati","Latticini e uova","Condimenti e spezie","Altro". Aggrega quantità per ingredienti ripetuti.`;
+  try{const txt2=await callAI(prompt,2000);const parsed=JSON.parse(txt2);S.spesaItems=parsed.items.map((it,i)=>({...it,id:i,done:false}));document.getElementById('spesaLoading').classList.add('hidden');renderSpesa();}
+  catch(e){document.getElementById('spesaLoading').classList.add('hidden');document.getElementById('spesaGenForm').classList.remove('hidden');err.textContent='Errore: '+e.message;err.classList.remove('hidden');}
+}
+
+function renderSpesa(){document.getElementById('spesaResult').classList.remove('hidden');const{token,chatId}=getTgConfig();document.getElementById('tgWarning').classList.toggle('hidden',!!(token&&chatId));renderSpesaCats();updateSpesaProg();}
+function renderSpesaCats(){const g={};CAT_ORDER.forEach(c=>g[c]=[]);S.spesaItems.forEach(it=>{const c=CAT_ORDER.includes(it.cat)?it.cat:'Altro';g[c].push(it);});const cb=document.getElementById('spesaCats');cb.innerHTML='';CAT_ORDER.forEach(cat=>{const its=g[cat];if(!its.length)return;const m=CAT_META[cat];const div=document.createElement('div');div.className='card';div.style.marginBottom='.625rem';div.innerHTML=`<div class="cat-hdr"><div class="cat-ic" style="background:${m.bg}"><i class="ti ${m.ic}" style="color:${m.cl};font-size:13px"></i></div><span style="font-size:13px;font-weight:500">${cat}</span><span style="font-size:11px;color:var(--color-text-secondary);margin-left:auto">${its.length}</span></div>`+its.map(it=>`<div class="item-row ${it.done?'done-item':''}" id="ir${it.id}"><div class="cb ${it.done?'chk':''}" onclick="togSpesa(${it.id})"></div><span class="iname">${it.name}</span><span style="font-size:12px;color:var(--color-text-secondary);min-width:70px;text-align:right">${it.qty}</span><button style="border:none;background:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px 4px;font-size:13px" onclick="delSpesa(${it.id})"><i class="ti ti-x"></i></button></div>`).join('');cb.appendChild(div);});}
+function togSpesa(id){const it=S.spesaItems.find(i=>i.id===id);if(it)it.done=!it.done;renderSpesaCats();updateSpesaProg();}
+function delSpesa(id){S.spesaItems=S.spesaItems.filter(i=>i.id!==id);renderSpesaCats();updateSpesaProg();}
+function updateSpesaProg(){const tot=S.spesaItems.length,done=S.spesaItems.filter(i=>i.done).length,pct=tot?Math.round(done/tot*100):0;document.getElementById('spesaProgFill').style.width=pct+'%';document.getElementById('spesaProgLbl').textContent=done+' / '+tot;}
+function checkAllSpesa(){S.spesaItems.forEach(i=>i.done=true);renderSpesaCats();updateSpesaProg();}
+function uncheckAllSpesa(){S.spesaItems.forEach(i=>i.done=false);renderSpesaCats();updateSpesaProg();}
+function removeDoneSpesa(){S.spesaItems=S.spesaItems.filter(i=>!i.done);renderSpesaCats();updateSpesaProg();}
+function resetSpesa(){document.getElementById('spesaResult').classList.add('hidden');document.getElementById('spesaGenForm').classList.remove('hidden');}
+function addSpesaItem(){const name=document.getElementById('addSpesaName').value.trim(),qty=document.getElementById('addSpesaQty').value.trim(),cat=document.getElementById('addSpesaCat').value;if(!name)return;const id=S.spesaItems.length?Math.max(...S.spesaItems.map(i=>i.id))+1:0;S.spesaItems.push({id,cat,name,qty:qty||'q.b.',done:false});document.getElementById('addSpesaName').value='';document.getElementById('addSpesaQty').value='';renderSpesaCats();updateSpesaProg();}
+function copySpesa(){const g={};CAT_ORDER.forEach(c=>g[c]=[]);S.spesaItems.filter(i=>!i.done).forEach(it=>{const c=CAT_ORDER.includes(it.cat)?it.cat:'Altro';g[c].push(it);});const now=new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});let txt=`LISTA DELLA SPESA — ${now}\n\n`;CAT_ORDER.forEach(cat=>{const its=g[cat];if(!its.length)return;txt+=cat.toUpperCase()+'\n';its.forEach(i=>txt+=`• ${i.name} — ${i.qty}\n`);txt+='\n';});navigator.clipboard.writeText(txt).catch(()=>{});showToast('Lista copiata!');}
+
+async function generateFrigo(){
+  const ing=S.tags.frigoIng,exc=S.tags.frigoExc,meal=document.getElementById('frigoMeal').value,num=document.getElementById('frigoNum').value,kcal=document.getElementById('frigoKcal').value,time=document.getElementById('frigoTime').value;
+  const err=document.getElementById('frigoErr');err.classList.add('hidden');
+  if(!ing.length){err.textContent='Aggiungi almeno un ingrediente.';err.classList.remove('hidden');return;}
+  document.getElementById('frigoForm').classList.add('hidden');document.getElementById('frigoLoading').classList.remove('hidden');
+  const msgs=['Cerco le ricette migliori...','Bilanciando i valori nutrizionali...','Verificando compatibilità ingredienti...','Preparo i procedimenti dettagliati...'];
+  let mi=0;const iv=setInterval(()=>{mi=(mi+1)%msgs.length;document.getElementById('frigoLoadMsg').textContent=msgs[mi];},2000);
+  const stagKey=getStagioneCorrente();const stagInfo=STAGIONI[stagKey];
+  const prompt=`Chef nutrizionista italiano. Proponi ${num} ricette con: ${ing.join(', ')}.${exc.length?' Escludi: '+exc.join(', ')+'.':''}${meal!=='qualsiasi'?' Tipo pasto: '+meal+'.':''}${kcal?' Kcal/porzione: ~'+kcal+'.':''}${time!=='qualsiasi'?' Max '+time+' min.':''}\nStagione corrente: ${stagInfo.label}. Privilegia abbinamenti stagionali (${stagInfo.prodotti}).\nPresupponi sempre disponibili: olio EVO, sale, pepe, aglio.\nRispondi SOLO con JSON senza backtick:\n{"ricette":[{"nome":"Nome ricetta","kcal":480,"tempo":"25 min","difficolta":"Facile","porzioni":"2 porzioni","ingredienti":["2 uova","1 zucchina media","50g parmigiano"],"ingredienti_mancanti":[],"procedimento":["Lava e taglia la zucchina a rondelle sottili.","Sbatti le uova in una ciotola con sale e pepe.","Scalda un filo d'olio in padella a fuoco medio.","Aggiungi le zucchine e cuoci 5 minuti fino a doratura.","Versa le uova e cuoci altri 3 minuti. Servi con parmigiano."],"note":"Ottima anche fredda il giorno dopo."}]}`;
+  try{const txt=await callAI(prompt,3000);clearInterval(iv);document.getElementById('frigoLoading').classList.add('hidden');renderFrigo(JSON.parse(txt));}
+  catch(e){clearInterval(iv);document.getElementById('frigoLoading').classList.add('hidden');document.getElementById('frigoForm').classList.remove('hidden');err.textContent='Errore: '+e.message;err.classList.remove('hidden');}
+}
+
+function renderFrigo(data){
+  document.getElementById('frigoResultTitle').textContent=data.ricette.length+' ricette trovate';
+  const rl=document.getElementById('frigoRecipes');rl.innerHTML='';
+  data.ricette.forEach(r=>{
+    const miss=r.ingredienti_mancanti?.length?`<div style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;margin:.75rem 0 5px">Ingredienti mancanti</div><ul class="ing-list">${r.ingredienti_mancanti.map(x=>`<li style="color:var(--color-text-secondary);"><span style="background:#E24B4A;width:5px;height:5px;border-radius:50%;flex-shrink:0;display:inline-block"></span>${x}</li>`).join('')}</ul>`:'';
+    const div=document.createElement('div');div.className='recipe-card';
+    div.innerHTML=`<div style="padding:.875rem 1rem;cursor:pointer;display:flex;align-items:flex-start;justify-content:space-between;gap:10px" onclick="this.nextElementSibling.classList.toggle('hidden')">
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:500;margin-bottom:5px">${r.nome}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="badge" style="background:#E1F5EE;color:#0F6E56"><i class="ti ti-flame" style="font-size:10px"></i> ${r.kcal} kcal</span>
+          <span class="badge" style="background:#E6F1FB;color:#0C447C"><i class="ti ti-clock" style="font-size:10px"></i> ${r.tempo}</span>
+          <span class="badge" style="background:#FAEEDA;color:#633806">${r.difficolta}</span>
+          <span class="badge" style="background:#EEEDFE;color:#3C3489"><i class="ti ti-users" style="font-size:10px"></i> ${r.porzioni}</span>
+        </div>
+      </div>
+      <i class="ti ti-chevron-down" style="color:var(--color-text-secondary);font-size:14px;flex-shrink:0;margin-top:2px"></i>
+    </div>
+    <div class="hidden" style="padding:1.25rem;border-top:0.5px solid var(--color-border-tertiary)">
+      <div style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Ingredienti</div>
+      <ul class="ing-list">${r.ingredienti.map(x=>`<li>${x}</li>`).join('')}</ul>
+      ${miss}
+      <div style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;margin:.875rem 0 5px">Procedimento</div>
+      <ol class="steps-ol">${r.procedimento.map(s=>`<li>${s}</li>`).join('')}</ol>
+      ${r.note?`<div style="margin-top:.875rem;padding:.625rem .875rem;background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:12px;color:var(--color-text-secondary)"><i class="ti ti-info-circle"></i> ${r.note}</div>`:''}
+    </div>`;
+    rl.appendChild(div);
+  });
+  document.getElementById('frigoResult').classList.remove('hidden');
+}
+function resetFrigo(){document.getElementById('frigoResult').classList.add('hidden');document.getElementById('frigoForm').classList.remove('hidden');}
+
+function trackTab(tab){['ins','and','obj'].forEach(t=>{const btn=document.getElementById('tb-'+t),panel=document.getElementById('tp-'+t),active=t===tab;btn.style.background=active?'#1D9E75':'transparent';btn.style.color=active?'#fff':'var(--color-text-secondary)';panel.style.display=active?'block':'none';});if(tab==='and')renderTrackCharts();if(tab==='obj')renderGoalProgress();}
+document.getElementById('tDate').value=new Date().toISOString().split('T')[0];
+function saveEntry(){const date=document.getElementById('tDate').value,weight=parseFloat(document.getElementById('tWeight').value);const err=document.getElementById('tErr'),suc=document.getElementById('tSaveMsg');err.classList.add('hidden');suc.classList.add('hidden');if(!date||isNaN(weight)){err.textContent='Data e peso obbligatori.';err.classList.remove('hidden');return;}const entry={date,weight,waist:parseFloat(document.getElementById('tWaist').value)||null,hips:parseFloat(document.getElementById('tHips').value)||null,bf:parseFloat(document.getElementById('tBf').value)||null,note:document.getElementById('tNote').value.trim()};S.trackEntries=S.trackEntries.filter(e=>e.date!==date);S.trackEntries.push(entry);S.trackEntries.sort((a,b)=>a.date.localeCompare(b.date));localStorage.setItem('np_entries',JSON.stringify(S.trackEntries));suc.classList.remove('hidden');setTimeout(()=>suc.classList.add('hidden'),2500);['tWeight','tWaist','tHips','tBf','tNote'].forEach(id=>document.getElementById(id).value='');renderTrackHistory();}
+function delEntry(date){S.trackEntries=S.trackEntries.filter(e=>e.date!==date);localStorage.setItem('np_entries',JSON.stringify(S.trackEntries));renderTrackHistory();}
+function fmtDate(d){const[y,m,day]=d.split('-');return day+'/'+m+'/'+y;}
+function renderTrackHistory(){const h=document.getElementById('tHistory');if(!S.trackEntries.length){h.innerHTML='<div class="no-data">Nessuna rilevazione inserita.</div>';return;}h.innerHTML=[...S.trackEntries].reverse().map(e=>`<div class="item-row"><span style="font-size:12px;color:var(--color-text-secondary);min-width:75px">${fmtDate(e.date)}</span><div style="flex:1;display:flex;gap:14px;flex-wrap:wrap"><div style="display:flex;flex-direction:column"><span style="font-size:13px;font-weight:500">${e.weight} kg</span><span style="font-size:10px;color:var(--color-text-secondary)">peso</span></div>${e.waist?`<div style="display:flex;flex-direction:column"><span style="font-size:13px;font-weight:500">${e.waist} cm</span><span style="font-size:10px;color:var(--color-text-secondary)">vita</span></div>`:''} ${e.bf?`<div style="display:flex;flex-direction:column"><span style="font-size:13px;font-weight:500">${e.bf}%</span><span style="font-size:10px;color:var(--color-text-secondary)">grasso</span></div>`:''} ${e.note?`<div style="display:flex;flex-direction:column"><span style="font-size:12px;font-style:italic;color:var(--color-text-secondary)">${e.note}</span><span style="font-size:10px;color:var(--color-text-secondary)">nota</span></div>`:''}</div><button class="btn sm danger" onclick="delEntry('${e.date}')"><i class="ti ti-trash"></i></button></div>`).join('');}
+function renderTrackCharts(){if(S.trackEntries.length<2)return;const labels=S.trackEntries.map(e=>fmtDate(e.date)),weights=S.trackEntries.map(e=>e.weight);const wEl=document.getElementById('chartWeight');wEl.innerHTML='<div class="chart-wrap"><canvas id="wc"></canvas></div>';if(wChart)wChart.destroy();wChart=new Chart(document.getElementById('wc'),{type:'line',data:{labels,datasets:[{label:'Peso kg',data:weights,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.07)',borderWidth:2,pointBackgroundColor:'#1D9E75',pointRadius:4,tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11}}}}}});const hasC=S.trackEntries.some(e=>e.waist);const cEl=document.getElementById('chartCircum');if(hasC){cEl.innerHTML='<div class="chart-wrap"><canvas id="cc"></canvas></div>';if(cChart)cChart.destroy();const ds=[];if(S.trackEntries.some(e=>e.waist))ds.push({label:'Vita',data:S.trackEntries.map(e=>e.waist),borderColor:'#378ADD',borderWidth:2,pointRadius:3,tension:0.3,fill:false});if(S.trackEntries.some(e=>e.hips))ds.push({label:'Fianchi',data:S.trackEntries.map(e=>e.hips),borderColor:'#D85A30',borderWidth:2,pointRadius:3,tension:0.3,fill:false});cChart=new Chart(document.getElementById('cc'),{type:'line',data:{labels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11}}}}}});}const first=S.trackEntries[0],last=S.trackEntries[S.trackEntries.length-1],wd=(last.weight-first.weight).toFixed(1),wc=wd>0?'color:#E24B4A':wd<0?'color:#1D9E75':'color:var(--color-text-secondary)';document.getElementById('statsGrid').innerHTML=`<div style="font-size:14px;font-weight:500;margin-bottom:.875rem">Riepilogo variazioni</div><div class="g4"><div class="mc"><div class="mv" style="font-size:16px">${first.weight} kg</div><div class="ml">Partenza</div></div><div class="mc"><div class="mv" style="font-size:16px;color:#1D9E75">${last.weight} kg</div><div class="ml">Attuale</div></div><div class="mc"><div class="mv" style="font-size:16px;${wc}">${wd>0?'+':''}${wd} kg</div><div class="ml">Variazione</div></div><div class="mc"><div class="mv" style="font-size:16px">${S.trackEntries.length}</div><div class="ml">Rilevazioni</div></div></div>`;}
+function saveGoal(){const start=parseFloat(document.getElementById('gStart').value),target=parseFloat(document.getElementById('gTarget').value),type=document.getElementById('gType').value,deadline=document.getElementById('gDeadline').value;if(isNaN(start)||isNaN(target)||!deadline){showToast('Compila tutti i campi','#E24B4A');return;}S.trackGoal={start,target,type,deadline};localStorage.setItem('np_goal',JSON.stringify(S.trackGoal));renderGoalProgress();showToast('Obiettivo salvato!');}
+function renderGoalProgress(){const g=S.trackGoal;if(!g)return;const gd=document.getElementById('goalDisplay');gd.classList.remove('hidden');const cur=S.trackEntries.length?S.trackEntries[S.trackEntries.length-1].weight:g.start;const tot=Math.abs(g.target-g.start),done=Math.abs(cur-g.start),pct=tot>0?Math.min(100,Math.round(done/tot*100)):100;const days=Math.max(0,Math.round((new Date(g.deadline)-new Date())/(1000*60*60*24)));const tl={cut:'Cut',maintain:'Mantenimento',bulk:'Bulk'};gd.innerHTML=`<div class="card-title" style="margin-bottom:.875rem"><i class="ti ti-trophy"></i> Progresso obiettivo</div><div style="margin-bottom:.875rem;font-size:12px;color:var(--color-text-secondary)">${tl[g.type]} · scadenza ${fmtDate(g.deadline)} · ${days} giorni rimasti</div><div class="g3" style="gap:8px;margin-bottom:1rem"><div class="mc"><div class="mv" style="font-size:16px">${g.start} kg</div><div class="ml">Partenza</div></div><div class="mc"><div class="mv" style="font-size:16px;color:#1D9E75">${cur} kg</div><div class="ml">Attuale</div></div><div class="mc"><div class="mv" style="font-size:16px;color:#378ADD">${g.target} kg</div><div class="ml">Target</div></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-bottom:5px"><span>Completamento</span><span style="font-weight:500;color:#1D9E75">${pct}%</span></div><div class="prog-bar" style="height:8px;margin-bottom:.875rem"><div class="prog-fill" style="width:${pct}%"></div></div><div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem;font-size:13px;color:var(--color-text-secondary)">${pct>=100?'<i class="ti ti-trophy" style="color:#BA7517"></i> Obiettivo raggiunto!':'Mancano <strong style="color:var(--color-text-primary)">'+Math.abs(g.target-cur).toFixed(1)+' kg</strong> all\'obiettivo — '+days+' giorni rimasti.'}</div>`;}
+
+const savedKey=localStorage.getItem('np_apikey');
+if(savedKey){document.getElementById('apikeyGate').classList.add('hidden');document.getElementById('mainApp').classList.remove('hidden');renderTrackHistory();renderTgStatus();initSeasonBadge();}
+</script>
+</body>
+</html>
