@@ -670,6 +670,208 @@ document.getElementById('btnBack').onclick=function(){
 };const gl={cut:'Cut — deficit calorico',maintain:'Mantenimento',bulk:'Bulk — surplus calorico'};document.getElementById('sp3').innerHTML=`<div class="card" style="text-align:center;padding:1.5rem"><div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.5rem">Calorie giornaliere target</div><div class="result-big">${target} kcal/die</div><div style="font-size:13px;color:var(--color-text-secondary);margin-top:.5rem">${gl[goal]} · regime ${diet}</div><div class="mstrip" style="margin-top:1.25rem"><div class="mc"><div class="mv">${bmr}</div><div class="ml">BMR kcal</div></div><div class="mc"><div class="mv" style="color:#1D9E75">${prot}g</div><div class="ml">Proteine</div></div><div class="mc"><div class="mv" style="color:#378ADD">${carb}g</div><div class="ml">Carboidrati</div></div><div class="mc"><div class="mv" style="color:#BA7517">${fat}g</div><div class="ml">Grassi</div></div></div></div><button class="btn primary full" onclick="goToMenu()"><i class="ti ti-salad"></i> Genera menù settimanale</button>`;}
 function goToMenu(){if(S.cfg.done){document.getElementById('mKcal').value=S.tdee.target;document.getElementById('mProt').value=S.tdee.prot;document.getElementById('mCarb').value=S.tdee.carb;document.getElementById('mDiet').value=S.cfg.diet;const n=[...S.cfg.intol,...S.cfg.allergy].join(', ');if(n)document.getElementById('mNotes').value='Evitare: '+n;document.getElementById('menuFormSub').textContent='Dati importati dal configuratore — modificabili prima di generare.';}goTo('menu');}
 
+
+// ============================================================
+// TABELLA NUTRIZIONALE — valori per 100g (kcal, prot, carbo, grassi)
+// ============================================================
+const NUTRIDB = {
+  // CEREALI E DERIVATI
+  'avena':           {k:389,p:17,c:66,f:7},
+  'fiocchi avena':   {k:389,p:17,c:66,f:7},
+  'pasta':           {k:353,p:12,c:71,f:1.5},
+  'pasta integrale': {k:343,p:13,c:67,f:2.5},
+  'riso':            {k:350,p:7,c:78,f:0.5},
+  'riso basmati':    {k:349,p:8,c:77,f:0.5},
+  'pane':            {k:270,p:8,c:52,f:1.5},
+  'pane integrale':  {k:247,p:9,c:47,f:2},
+  'gallette riso':   {k:387,p:8,c:82,f:2},
+  'muesli':          {k:370,p:10,c:65,f:8},
+  'farro':           {k:335,p:13,c:67,f:2},
+  'quinoa':          {k:368,p:14,c:64,f:6},
+  'polenta':         {k:362,p:9,c:74,f:2},
+  'farina':          {k:364,p:11,c:76,f:1},
+  // PROTEINE ANIMALI
+  'pollo':           {k:110,p:23,c:0,f:2},
+  'petto pollo':     {k:110,p:23,c:0,f:2},
+  'tacchino':        {k:105,p:22,c:0,f:1.5},
+  'manzo':           {k:200,p:20,c:0,f:13},
+  'vitello':         {k:160,p:21,c:0,f:8},
+  'maiale':          {k:215,p:19,c:0,f:15},
+  'salmone':         {k:208,p:20,c:0,f:13},
+  'tonno':           {k:116,p:26,c:0,f:1},
+  'tonno sott':      {k:116,p:26,c:0,f:1},
+  'merluzzo':        {k:82,p:18,c:0,f:0.7},
+  'branzino':        {k:97,p:18,c:0,f:2.5},
+  'orata':           {k:96,p:18,c:0,f:2.5},
+  'sgombro':         {k:205,p:19,c:0,f:14},
+  'uova':            {k:143,p:13,c:0.7,f:10},
+  'uovo':            {k:143,p:13,c:0.7,f:10},
+  'prosciutto cotto':{k:154,p:19,c:1,f:8},
+  'prosciutto':      {k:145,p:25,c:0,f:5},
+  // LATTICINI
+  'latte':           {k:46,p:3.4,c:4.8,f:1.5},
+  'latte scremato':  {k:36,p:3.6,c:5,f:0.1},
+  'latte parz':      {k:46,p:3.4,c:4.8,f:1.5},
+  'yogurt greco':    {k:59,p:10,c:3.6,f:0.4},
+  'yogurt':          {k:61,p:3.5,c:7,f:3.2},
+  'ricotta':         {k:146,p:11,c:3,f:10},
+  'ricotta vaccina': {k:146,p:11,c:3,f:10},
+  'mozzarella':      {k:254,p:18,c:2.2,f:20},
+  'parmigiano':      {k:431,p:33,c:0,f:29},
+  'grana':           {k:431,p:33,c:0,f:29},
+  'pecorino':        {k:419,p:26,c:0,f:33},
+  'feta':            {k:264,p:14,c:4,f:21},
+  'burro':           {k:717,p:0.9,c:0.1,f:81},
+  // LEGUMI
+  'ceci':            {k:116,p:8,c:18,f:2},
+  'lenticchie':      {k:116,p:9,c:20,f:0.5},
+  'fagioli':         {k:114,p:8,c:20,f:0.5},
+  'fagiolini':       {k:31,p:1.8,c:7,f:0.2},
+  'piselli':         {k:81,p:5,c:14,f:0.4},
+  'fave':            {k:72,p:5,c:12,f:0.5},
+  'soia':            {k:446,p:36,c:30,f:20},
+  'tofu':            {k:76,p:8,c:2,f:4},
+  'edamame':         {k:121,p:11,c:10,f:5},
+  // VERDURE
+  'zucchine':        {k:17,p:1.2,c:3.1,f:0.3},
+  'pomodori':        {k:18,p:0.9,c:3.5,f:0.2},
+  'pomodorini':      {k:18,p:0.9,c:3.5,f:0.2},
+  'spinaci':         {k:23,p:2.9,c:3.6,f:0.4},
+  'broccoli':        {k:34,p:2.8,c:7,f:0.4},
+  'cavolfiore':      {k:25,p:1.9,c:5,f:0.3},
+  'cavolo':          {k:25,p:1.3,c:6,f:0.1},
+  'asparagi':        {k:20,p:2.2,c:3.9,f:0.1},
+  'carciofi':        {k:47,p:3.3,c:10,f:0.2},
+  'melanzane':       {k:25,p:1,c:5.7,f:0.2},
+  'peperoni':        {k:31,p:1,c:7,f:0.3},
+  'insalata':        {k:15,p:1.4,c:2.9,f:0.2},
+  'lattuga':         {k:15,p:1.4,c:2.9,f:0.2},
+  'rucola':          {k:25,p:2.6,c:3.7,f:0.7},
+  'cetrioli':        {k:16,p:0.6,c:3.6,f:0.1},
+  'sedano':          {k:16,p:0.7,c:3,f:0.2},
+  'carote':          {k:41,p:0.9,c:10,f:0.2},
+  'cipolle':         {k:40,p:1.1,c:9,f:0.1},
+  'aglio':           {k:149,p:6.4,c:33,f:0.5},
+  'funghi':          {k:22,p:3.1,c:3.3,f:0.3},
+  'patate':          {k:77,p:2,c:17,f:0.1},
+  'patate lesse':    {k:77,p:2,c:17,f:0.1},
+  'mais':            {k:86,p:3.3,c:19,f:1.4},
+  'barbabietola':    {k:43,p:1.6,c:10,f:0.2},
+  // FRUTTA
+  'mela':            {k:52,p:0.3,c:14,f:0.2},
+  'mele':            {k:52,p:0.3,c:14,f:0.2},
+  'banana':          {k:89,p:1.1,c:23,f:0.3},
+  'arancia':         {k:47,p:0.9,c:12,f:0.1},
+  'arance':          {k:47,p:0.9,c:12,f:0.1},
+  'pera':            {k:57,p:0.4,c:15,f:0.1},
+  'pere':            {k:57,p:0.4,c:15,f:0.1},
+  'pesche':          {k:39,p:0.9,c:10,f:0.3},
+  'pesca':           {k:39,p:0.9,c:10,f:0.3},
+  'albicocche':      {k:48,p:1.4,c:11,f:0.4},
+  'albicocca':       {k:48,p:1.4,c:11,f:0.4},
+  'fragole':         {k:32,p:0.7,c:8,f:0.3},
+  'uva':             {k:69,p:0.7,c:18,f:0.2},
+  'kiwi':            {k:61,p:1.1,c:15,f:0.5},
+  'mango':           {k:60,p:0.8,c:15,f:0.4},
+  'ananas':          {k:50,p:0.5,c:13,f:0.1},
+  'mirtilli':        {k:57,p:0.7,c:14,f:0.3},
+  'melone':          {k:34,p:0.8,c:8,f:0.2},
+  'anguria':         {k:30,p:0.6,c:8,f:0.2},
+  'limone':          {k:29,p:1.1,c:9,f:0.3},
+  'pompelmo':        {k:42,p:0.8,c:11,f:0.1},
+  'lamponi':         {k:52,p:1.2,c:12,f:0.7},
+  'cachi':           {k:70,p:0.6,c:19,f:0.2},
+  'fichi':           {k:74,p:0.7,c:19,f:0.3},
+  'castagne':        {k:245,p:3.6,c:53,f:2.5},
+  // FRUTTA SECCA E SEMI
+  'mandorle':        {k:579,p:21,c:22,f:50},
+  'noci':            {k:654,p:15,c:14,f:65},
+  'nocciole':        {k:628,p:15,c:17,f:61},
+  'pistacchi':       {k:562,p:20,c:28,f:45},
+  'anacardi':        {k:553,p:18,c:30,f:44},
+  'semi zucca':      {k:559,p:30,c:11,f:49},
+  'semi girasole':   {k:584,p:21,c:20,f:51},
+  'semi chia':       {k:486,p:17,c:42,f:31},
+  // CONDIMENTI E GRASSI
+  'olio':            {k:884,p:0,c:0,f:100},
+  'olio evo':        {k:884,p:0,c:0,f:100},
+  'olio extravergine':{k:884,p:0,c:0,f:100},
+  'miele':           {k:304,p:0.3,c:82,f:0},
+  'zucchero':        {k:387,p:0,c:100,f:0},
+  'sale':            {k:0,p:0,c:0,f:0},
+  'aceto':           {k:22,p:0,c:0.6,f:0},
+  'basilico':        {k:23,p:3.2,c:2.7,f:0.6},
+  'prezzemolo':      {k:36,p:3,c:6,f:0.8},
+  'pepe':            {k:255,p:10,c:64,f:3},
+  'curcuma':         {k:354,p:8,c:65,f:10},
+  'cannella':        {k:247,p:4,c:81,f:1},
+  // BEVANDE
+  'acqua':           {k:0,p:0,c:0,f:0},
+  'caffe':           {k:1,p:0.1,c:0,f:0},
+  'te':              {k:1,p:0,c:0.2,f:0},
+};
+
+// Parse ingredient string and calculate real kcal
+function parseIngredientKcal(ingredientStr) {
+  const str = ingredientStr.toLowerCase();
+  let totalKcal = 0;
+  let found = false;
+
+  // Extract all "Xg" or "Xml" quantities with their context
+  const patterns = [
+    /(\d+(?:\.\d+)?)\s*g/g,
+    /(\d+(?:\.\d+)?)\s*ml/g,
+  ];
+
+  // Split by '+' to process each ingredient separately
+  const parts = str.split('+').map(p => p.trim());
+
+  for (const part of parts) {
+    let grams = 0;
+    const gramMatch = part.match(/(\d+(?:\.\d+)?)\s*(?:g|ml)/);
+    if (gramMatch) grams = parseFloat(gramMatch[1]);
+    if (grams === 0) continue;
+
+    // Find matching food in DB
+    let bestMatch = null;
+    let bestScore = 0;
+    for (const [food, vals] of Object.entries(NUTRIDB)) {
+      if (part.includes(food)) {
+        if (food.length > bestScore) {
+          bestScore = food.length;
+          bestMatch = vals;
+        }
+      }
+    }
+    if (bestMatch) {
+      totalKcal += Math.round(bestMatch.k * grams / 100);
+      found = true;
+    }
+  }
+  return found ? totalKcal : null;
+}
+
+// Recalculate all meal kcal after menu is rendered
+function recalcMenuKcal(menuData) {
+  let dayTotals = [];
+  menuData.giorni.forEach((g, di) => {
+    let dayKcal = 0;
+    g.pasti.forEach((p, pi) => {
+      const calc = parseIngredientKcal(p.descrizione);
+      if (calc !== null && calc > 0) {
+        menuData.giorni[di].pasti[pi].kcal = calc;
+        menuData.giorni[di].pasti[pi].kcal_verified = true;
+      }
+      dayKcal += menuData.giorni[di].pasti[pi].kcal;
+    });
+    menuData.giorni[di].kcal_totale = dayKcal;
+    dayTotals.push(dayKcal);
+  });
+  // Update media
+  menuData.kcal_media = Math.round(dayTotals.reduce((a,b)=>a+b,0)/dayTotals.length);
+  return menuData;
+}
+
 async function callAI(prompt,maxTokens=4000,model='claude-haiku-4-5-20251001'){const key=getKey();if(!key){showToast('API key mancante — vai su Setup','#E24B4A');return null;}const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})});const data=await res.json();if(data.error)throw new Error(data.error.message);return data.content.map(b=>b.type==='text'?b.text:'').join('').trim().replace(/```json|```/g,'').trim();}
 
 async function generateMenu(){
@@ -718,7 +920,7 @@ REGOLE OBBLIGATORIE — RISPETTA TUTTE:
 Rispondi SOLO con JSON valido, nessun testo prima o dopo:
 {"kcal_media":${kcal},"prot_media":${prot||0},"carb_media":${carb||0},"fat_media":${fatTarget},"stagione":"${stagInfo?.label||'Nessuna'}","giorni":[{"kcal_totale":${kcal},"pasti":[{"tipo":"Colazione","descrizione":"Fiocchi avena 60g + latte parz. scremato 200ml + banana 100g","kcal":350},{"tipo":"Pranzo","descrizione":"Pasta integrale 90g a secco + petto pollo 150g + pomodorini 100g + olio EVO 8g","kcal":580},{"tipo":"Cena","descrizione":"Merluzzo 180g + patate lesse 250g + spinaci 150g + olio EVO 8g","kcal":480}]}]}
 IMPORTANTE: genera tutti e 7 i giorni completi (Lun-Dom).`;
-  try{const txt=await callAI(prompt,6000,'claude-sonnet-4-6');clearInterval(iv);const js=txt.slice(txt.indexOf("{"),txt.lastIndexOf("}")+1);S.menu=JSON.parse(js);document.getElementById('menuLoading').classList.add('hidden');renderMenu(stagInfo);}
+  try{const txt=await callAI(prompt,6000,'claude-sonnet-4-6');clearInterval(iv);const js=txt.slice(txt.indexOf("{"),txt.lastIndexOf("}")+1);S.menu=JSON.parse(js);S.menu=recalcMenuKcal(S.menu);document.getElementById('menuLoading').classList.add('hidden');renderMenu(stagInfo);}
   catch(e){clearInterval(iv);document.getElementById('menuLoading').classList.add('hidden');document.getElementById('menuGenForm').classList.remove('hidden');err.textContent='Errore: '+e.message;err.classList.remove('hidden');}
 }
 
@@ -732,7 +934,7 @@ function renderMenu(stagInfo){
   document.getElementById('menuSeasonInfo').innerHTML=stagInfo?`<div style="display:flex;align-items:center;gap:8px;background:#E1F5EE;border-radius:var(--border-radius-md);padding:.625rem 1rem;font-size:12px;color:#0F6E56"><i class="ti ${stagInfo.icon}"></i><span><strong>${stagInfo.label}</strong> — menù costruito con prodotti di stagione italiani</span></div>`:'';
   const db=document.getElementById('menuDays');db.innerHTML='';
   m.giorni.forEach((g,i)=>{
-    const mh=g.pasti.map(p=>{const t=p.tipo.toLowerCase();const bc=t.includes('colazione')?'col':t.includes('pranzo')?'pra':t.includes('cena')?'cen':'spu';return`<div class="meal-row"><span class="mbadge ${bc}">${p.tipo}</span><span style="flex:1;font-size:13px">${p.descrizione}</span><span style="font-size:12px;color:var(--color-text-secondary);white-space:nowrap">${p.kcal} kcal</span></div>`;}).join('');
+    const mh=g.pasti.map(p=>{const t=p.tipo.toLowerCase();const bc=t.includes('colazione')?'col':t.includes('pranzo')?'pra':t.includes('cena')?'cen':'spu';const verifiedBadge=p.kcal_verified?'<i class="ti ti-check" style="font-size:9px;color:#1D9E75;margin-left:3px" title="Calcolato dal database nutrizionale"></i>':'';return`<div class="meal-row"><span class="mbadge ${bc}">${p.tipo}</span><span style="flex:1;font-size:13px">${p.descrizione}</span><span style="font-size:12px;color:var(--color-text-secondary);white-space:nowrap">${p.kcal} kcal${verifiedBadge}</span></div>`;}).join('');
     const div=document.createElement('div');div.className='day-block';
     div.innerHTML=`<div class="day-hdr" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'"><span style="font-size:13px;font-weight:500">${DAY_NAMES[i]}</span><span style="font-size:12px;color:#1D9E75;font-weight:500">${g.kcal_totale} kcal</span></div><div style="padding:0 1rem;display:block">${mh}</div>`;
     db.appendChild(div);
