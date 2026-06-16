@@ -274,6 +274,70 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     <div class="field"><label>Allergie</label><div class="tag-box" id="allergyBox" onclick="document.getElementById('allergyIn').focus()"><input type="text" id="allergyIn" placeholder="Es: frutta secca, crostacei... (Invio)" onkeydown="addTag(event,'allergy')"></div></div>
   </div>
 
+  <!-- CERCA ALIMENTO + EAN SCANNER (moved from Setup) -->
+  <div class="card" style="margin-top:-.25rem">
+    <div class="card-title"><i class="ti ti-database" style="color:#1D9E75"></i> Cerca alimento</div>
+    <div class="card-sub">Ricerca valori nutrizionali per 100g — gratuito, nessun credito AI. Cerca per nome, scansiona barcode o inserisci il codice EAN.</div>
+    <div style="display:flex;gap:0;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);overflow:hidden;margin-bottom:1rem">
+      <button id="tab-nome" onclick="switchFoodTab('nome')" style="flex:1;padding:7px;border:none;background:#1D9E75;color:#fff;font-size:12px;font-weight:500;cursor:pointer">🔍 Nome</button>
+      <button id="tab-barcode" onclick="switchFoodTab('barcode')" style="flex:1;padding:7px;border:none;background:transparent;color:var(--color-text-secondary);font-size:12px;font-weight:500;cursor:pointer">📷 Barcode</button>
+      <button id="tab-ean" onclick="switchFoodTab('ean')" style="flex:1;padding:7px;border:none;background:transparent;color:var(--color-text-secondary);font-size:12px;font-weight:500;cursor:pointer">🔢 EAN</button>
+    </div>
+    <div id="panel-nome">
+      <div style="display:flex;gap:8px;margin-bottom:.5rem">
+        <input type="text" id="offSearch" placeholder="Es: petto di pollo, pasta integrale..." style="flex:1" onkeydown="if(event.key==='Enter')searchFood()">
+        <button class="btn primary" onclick="searchFood()"><i class="ti ti-search"></i></button>
+      </div>
+    </div>
+    <div id="panel-barcode" style="display:none">
+      <div style="text-align:center;margin-bottom:.75rem">
+        <button class="btn primary" onclick="startScanner()" id="scanBtn"><i class="ti ti-camera"></i> Attiva fotocamera</button>
+        <button class="btn danger sm" onclick="stopScanner()" id="stopBtn" style="display:none;margin-left:8px"><i class="ti ti-x"></i> Ferma</button>
+      </div>
+      <div id="scannerWrap" style="display:none;position:relative;border-radius:var(--border-radius-md);overflow:hidden;background:#000;max-height:220px">
+        <video id="scannerVideo" style="width:100%;display:block" playsinline autoplay></video>
+        <canvas id="scannerCanvas" style="display:none"></canvas>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;height:100px;border:2px solid #1D9E75;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,0.4)"></div>
+      </div>
+      <div id="scanStatus" style="font-size:12px;color:var(--color-text-secondary);text-align:center;margin-top:.5rem"></div>
+    </div>
+    <div id="panel-ean" style="display:none">
+      <div style="display:flex;gap:8px">
+        <input type="number" id="eanInput" placeholder="Es: 8001120896063" style="flex:1;font-family:var(--font-mono);font-size:12px" onkeydown="if(event.key==='Enter')searchByEAN()">
+        <button class="btn primary" onclick="searchByEAN()"><i class="ti ti-search"></i></button>
+      </div>
+    </div>
+    <div id="foodLoading" class="hidden" style="text-align:center;padding:.875rem;font-size:13px;color:var(--color-text-secondary)"><div class="spinner" style="width:20px;height:20px;margin:0 auto .5rem;border-width:2px"></div>Ricerca...</div>
+    <div id="foodResults"></div>
+  </div>
+
+  <!-- CALCOLO MACRO PASTO -->
+  <div class="card" style="margin-top:-.25rem">
+    <div class="card-title"><i class="ti ti-calculator" style="color:#1D9E75"></i> Calcolo macro pasto</div>
+    <div class="card-sub">Inserisci gli ingredienti con le grammature per calcolare istantaneamente i valori nutrizionali. Nessuna chiamata AI — usa il database locale.</div>
+    <div id="macroCalcRows">
+      <div class="macro-calc-row" style="display:flex;gap:6px;margin-bottom:6px">
+        <input type="text" placeholder="Ingrediente (es: pasta integrale)" style="flex:2;font-size:12px" class="macro-ing">
+        <input type="number" placeholder="g" style="width:65px;font-size:12px" class="macro-gr">
+        <button class="btn sm" onclick="removeMacroRow(this)" style="flex-shrink:0"><i class="ti ti-x"></i></button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:1rem">
+      <button class="btn sm" onclick="addMacroRow()"><i class="ti ti-plus"></i> Ingrediente</button>
+      <button class="btn primary" onclick="calcMacro()"><i class="ti ti-calculator"></i> Calcola</button>
+      <button class="btn sm" onclick="resetMacro()"><i class="ti ti-refresh"></i> Reset</button>
+    </div>
+    <div id="macroCalcResult" class="hidden">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        <div class="mc"><div class="mv" style="color:#1D9E75" id="mcKcal">0</div><div class="ml">kcal</div></div>
+        <div class="mc"><div class="mv" id="mcProt">0g</div><div class="ml">proteine</div></div>
+        <div class="mc"><div class="mv" style="color:#378ADD" id="mcCarb">0g</div><div class="ml">carboidrati</div></div>
+        <div class="mc"><div class="mv" style="color:#BA7517" id="mcFat">0g</div><div class="ml">grassi</div></div>
+      </div>
+      <div id="macroCalcDetails" style="margin-top:.75rem;font-size:12px;color:var(--color-text-secondary)"></div>
+    </div>
+  </div>
+
   <div class="card" style="margin-top:-.25rem">
     <div class="card-title"><i class="ti ti-file-import" style="color:#1D9E75"></i> Importa piano alimentare <span style="font-size:11px;font-weight:400;background:var(--color-background-secondary);border-radius:20px;padding:2px 8px;color:var(--color-text-secondary);margin-left:4px">opzionale</span></div>
     <div class="card-sub">Hai già un piano alimentare? Importalo per analizzare i tuoi alimenti abituali e ottimizzare il menù generato.</div>
@@ -411,9 +475,10 @@ input[type=range]{width:100%;accent-color:#1D9E75}
 <!-- TRACKING -->
 <div class="screen" id="screen-tracking">
   <div style="display:flex;gap:2px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:3px;margin-bottom:1rem">
-    <button onclick="trackTab('ins')" id="tb-ins" style="flex:1;padding:6px;border:none;background:#1D9E75;border-radius:var(--border-radius-md);font-size:12px;font-weight:500;color:#fff;cursor:pointer">Inserisci</button>
-    <button onclick="trackTab('and')" id="tb-and" style="flex:1;padding:6px;border:none;background:transparent;border-radius:var(--border-radius-md);font-size:12px;font-weight:500;color:var(--color-text-secondary);cursor:pointer">Andamento</button>
-    <button onclick="trackTab('obj')" id="tb-obj" style="flex:1;padding:6px;border:none;background:transparent;border-radius:var(--border-radius-md);font-size:12px;font-weight:500;color:var(--color-text-secondary);cursor:pointer">Obiettivo</button>
+    <button onclick="trackTab('ins')" id="tb-ins" style="flex:1;padding:6px;border:none;background:#1D9E75;border-radius:var(--border-radius-md);font-size:11px;font-weight:500;color:#fff;cursor:pointer">Misure</button>
+    <button onclick="trackTab('and')" id="tb-and" style="flex:1;padding:6px;border:none;background:transparent;border-radius:var(--border-radius-md);font-size:11px;font-weight:500;color:var(--color-text-secondary);cursor:pointer">Andamento</button>
+    <button onclick="trackTab('obj')" id="tb-obj" style="flex:1;padding:6px;border:none;background:transparent;border-radius:var(--border-radius-md);font-size:11px;font-weight:500;color:var(--color-text-secondary);cursor:pointer">Obiettivo</button>
+    <button onclick="trackTab('kcal')" id="tb-kcal" style="flex:1;padding:6px;border:none;background:transparent;border-radius:var(--border-radius-md);font-size:11px;font-weight:500;color:var(--color-text-secondary);cursor:pointer">Kcal</button>
   </div>
   <div id="tp-ins">
     <div class="card">
@@ -441,6 +506,28 @@ input[type=range]{width:100%;accent-color:#1D9E75}
       <button class="btn primary full" onclick="saveGoal()"><i class="ti ti-check"></i> Salva obiettivo</button>
     </div>
     <div id="goalDisplay" class="hidden card"></div>
+  </div>
+
+  <!-- KCAL GIORNALIERE -->
+  <div id="tp-kcal" style="display:none">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-flame"></i> Kcal consumate oggi</div>
+      <div class="card-sub">Registra le calorie consumate ogni giorno e confrontale con il tuo target.</div>
+      <div class="g2">
+        <div class="field"><label>Data</label><input type="date" id="kcalDate"></div>
+        <div class="field"><label>Kcal consumate</label><input type="number" id="kcalConsumate" placeholder="es. 1850" min="0" max="9999"></div>
+      </div>
+      <div class="field"><label>Kcal target (dal configuratore)</label>
+        <input type="number" id="kcalTarget2" placeholder="es. 2000" min="0" max="9999">
+      </div>
+      <div class="field"><label>Note</label><input type="text" id="kcalNote" placeholder="Es: giorno di allenamento, pasto fuori..."></div>
+      <button class="btn primary full" onclick="saveKcalDay()"><i class="ti ti-plus"></i> Salva</button>
+      <div id="kcalSaveMsg" class="hidden" style="margin-top:.625rem;background:#E1F5EE;border-radius:var(--border-radius-md);padding:.5rem .875rem;font-size:13px;color:#0F6E56"><i class="ti ti-check"></i> Salvato.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:.875rem"><i class="ti ti-chart-bar"></i> Storico kcal</div>
+      <div id="kcalHistory"><div class="no-data">Nessuna registrazione ancora.</div></div>
+    </div>
   </div>
 </div>
 
@@ -475,64 +562,6 @@ input[type=range]{width:100%;accent-color:#1D9E75}
       <button class="btn tg full" id="tgSaveBtn" onclick="saveTelegram()"><i class="ti ti-brand-telegram"></i> Verifica e salva</button>
       <div id="tgSaveMsg" class="hidden" style="margin-top:.75rem"></div>
     </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title"><i class="ti ti-database" style="color:#1D9E75"></i> Cerca alimento</div>
-    <div class="card-sub">Ricerca valori nutrizionali per 100g — gratuito, nessun credito AI utilizzato. Cerca per nome o scansiona il barcode con la fotocamera.</div>
-
-    <div style="display:flex;gap:0;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);overflow:hidden;margin-bottom:1rem">
-      <button id="tab-nome" onclick="switchFoodTab('nome')" style="flex:1;padding:7px;border:none;background:#1D9E75;color:#fff;font-size:12px;font-weight:500;cursor:pointer">🔍 Cerca per nome</button>
-      <button id="tab-barcode" onclick="switchFoodTab('barcode')" style="flex:1;padding:7px;border:none;background:transparent;color:var(--color-text-secondary);font-size:12px;font-weight:500;cursor:pointer">📷 Scansiona barcode</button>
-      <button id="tab-ean" onclick="switchFoodTab('ean')" style="flex:1;padding:7px;border:none;background:transparent;color:var(--color-text-secondary);font-size:12px;font-weight:500;cursor:pointer">🔢 Inserisci EAN</button>
-    </div>
-
-    <!-- CERCA PER NOME -->
-    <div id="panel-nome">
-      <div style="display:flex;gap:8px;margin-bottom:.75rem">
-        <input type="text" id="offSearch" placeholder="Es: petto di pollo, pasta integrale, mela..." style="flex:1" onkeydown="if(event.key==='Enter')searchFood()">
-        <button class="btn primary" onclick="searchFood()"><i class="ti ti-search"></i> Cerca</button>
-      </div>
-      <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:.5rem">Cerca su USDA FoodData Central (alimenti base) e Open Food Facts (prodotti confezionati)</div>
-    </div>
-
-    <!-- SCANSIONA BARCODE -->
-    <div id="panel-barcode" style="display:none">
-      <div style="text-align:center;margin-bottom:.75rem">
-        <button class="btn primary" onclick="startScanner()" id="scanBtn"><i class="ti ti-camera"></i> Attiva fotocamera</button>
-        <button class="btn danger sm" onclick="stopScanner()" id="stopBtn" style="display:none;margin-left:8px"><i class="ti ti-x"></i> Ferma</button>
-      </div>
-      <div id="scannerWrap" style="display:none;position:relative;border-radius:var(--border-radius-md);overflow:hidden;background:#000;max-height:260px">
-        <video id="scannerVideo" style="width:100%;display:block" playsinline autoplay></video>
-        <canvas id="scannerCanvas" style="display:none"></canvas>
-        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:220px;height:120px;border:2px solid #1D9E75;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,0.4)"></div>
-        <div style="position:absolute;bottom:10px;left:0;right:0;text-align:center;color:#fff;font-size:12px">Inquadra il barcode del prodotto</div>
-      </div>
-      <div id="scanStatus" style="font-size:13px;color:var(--color-text-secondary);text-align:center;margin-top:.5rem"></div>
-    </div>
-
-    <!-- INSERISCI EAN MANUALE -->
-    <div id="panel-ean" style="display:none">
-      <div style="display:flex;gap:8px;margin-bottom:.75rem">
-        <input type="number" id="eanInput" placeholder="Es: 8001120896063" style="flex:1;font-family:var(--font-mono)" onkeydown="if(event.key==='Enter')searchByEAN()">
-        <button class="btn primary" onclick="searchByEAN()"><i class="ti ti-search"></i> Cerca</button>
-      </div>
-      <div style="font-size:11px;color:var(--color-text-tertiary)">Trovi il codice EAN sotto al barcode sulla confezione del prodotto</div>
-    </div>
-
-    <div id="foodLoading" class="hidden" style="text-align:center;padding:.875rem;font-size:13px;color:var(--color-text-secondary)"><div class="spinner" style="width:20px;height:20px;margin:0 auto .5rem;border-width:2px"></div>Ricerca in corso...</div>
-    <div id="foodResults"></div>
-  </div>
-
-  <div class="card">
-    <div class="card-title"><i class="ti ti-file-import" style="color:#1D9E75"></i> Importa piano alimentare</div>
-    <div class="card-sub">Incolla un piano alimentare esistente (anche da altro software o da un nutrizionista) per analizzare quali alimenti consumi di più e ottimizzare il tuo menù.</div>
-    <div class="field">
-      <textarea id="pianoImportText" rows="6" placeholder="Incolla qui il tuo piano alimentare. Es:&#10;Lunedì - Colazione: latte 200ml, fiocchi avena 50g, banana&#10;Lunedì - Pranzo: pasta 80g, pollo 150g, insalata...&#10;&#10;Funziona anche con piani in formato libero o esportati da altre app." style="font-size:13px;resize:vertical"></textarea>
-    </div>
-    <button class="btn primary full" onclick="importPiano()"><i class="ti ti-sparkles"></i> Analizza piano</button>
-    <div id="pianoLoading" class="hidden" style="text-align:center;padding:1rem;font-size:13px;color:var(--color-text-secondary)"><div class="spinner" style="width:20px;height:20px;margin:0 auto .5rem;border-width:2px"></div>Analisi in corso...</div>
-    <div id="pianoResult" class="hidden" style="margin-top:1rem"></div>
   </div>
 
   <div class="card" style="background:var(--color-background-secondary)">
@@ -648,7 +677,10 @@ if(S.cfg.trainMode==='descrivi' && S.cfg.trainData){
 } else {
   S.cfg.trainAdjustment=0;
 }
-S.cfg.done=true;S.cfg.pref=S.tags.pref;S.cfg.intol=S.tags.intol;S.cfg.allergy=S.tags.allergy;
+S.cfg.done=true;S.cfg.pref=S.tags.pref;
+// Pre-fill kcal target in tracking
+const kt=document.getElementById('kcalTarget2');
+if(kt)kt.value=target;S.cfg.intol=S.tags.intol;S.cfg.allergy=S.tags.allergy;
 const doneBtn=document.getElementById('btnNext');
 doneBtn.innerHTML='<i class="ti ti-check"></i> Fatto!';
 doneBtn.disabled=true;
@@ -1026,6 +1058,118 @@ function recalcMenuKcal(menuData) {
   // Update media
   menuData.kcal_media = Math.round(dayTotals.reduce((a,b)=>a+b,0)/dayTotals.length);
   return menuData;
+}
+
+
+// ============================================================
+// CALCOLO MACRO PASTO
+// ============================================================
+function addMacroRow(){
+  const row=document.createElement('div');
+  row.className='macro-calc-row';
+  row.style.cssText='display:flex;gap:6px;margin-bottom:6px';
+  row.innerHTML='<input type="text" placeholder="Ingrediente" style="flex:2;font-size:12px;padding:7px 9px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);outline:none" class="macro-ing"><input type="number" placeholder="g" style="width:65px;font-size:12px;padding:7px 9px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);outline:none" class="macro-gr"><button class="btn sm" onclick="removeMacroRow(this)" style="flex-shrink:0"><i class="ti ti-x"></i></button>';
+  document.getElementById('macroCalcRows').appendChild(row);
+}
+
+function removeMacroRow(btn){
+  const rows=document.querySelectorAll('.macro-calc-row');
+  if(rows.length>1) btn.closest('.macro-calc-row').remove();
+}
+
+function resetMacro(){
+  document.querySelectorAll('.macro-calc-row').forEach((r,i)=>{if(i>0)r.remove();else{r.querySelector('.macro-ing').value='';r.querySelector('.macro-gr').value='';}});
+  document.getElementById('macroCalcResult').classList.add('hidden');
+}
+
+function calcMacro(){
+  const rows=document.querySelectorAll('.macro-calc-row');
+  let totKcal=0,totProt=0,totCarb=0,totFat=0;
+  const details=[];
+  let hasData=false;
+
+  rows.forEach(row=>{
+    const ing=row.querySelector('.macro-ing').value.trim().toLowerCase();
+    const gr=parseFloat(row.querySelector('.macro-gr').value)||0;
+    if(!ing||!gr)return;
+    const vals=fuzzyMatchFood(ing+' '+gr+'g');
+    if(vals){
+      const k=Math.round(vals.k*gr/100);
+      const p=Math.round(vals.p*gr/100*10)/10;
+      const c=Math.round(vals.c*gr/100*10)/10;
+      const f=Math.round(vals.f*gr/100*10)/10;
+      totKcal+=k;totProt+=p;totCarb+=c;totFat+=f;
+      details.push(`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px"><span>${ing} ${gr}g</span><span style="color:var(--color-text-secondary)">${k} kcal | P${p}g C${c}g G${f}g</span></div>`);
+      hasData=true;
+    } else {
+      details.push(`<div style="padding:3px 0;font-size:12px;color:var(--color-text-secondary)"><i class="ti ti-alert-triangle" style="color:#E24B4A;font-size:11px"></i> "${ing}" non trovato nel database</div>`);
+    }
+  });
+
+  if(!hasData){showToast('Inserisci almeno un ingrediente con grammatura','#E24B4A');return;}
+  document.getElementById('mcKcal').textContent=totKcal;
+  document.getElementById('mcProt').textContent=Math.round(totProt*10)/10+'g';
+  document.getElementById('mcCarb').textContent=Math.round(totCarb*10)/10+'g';
+  document.getElementById('mcFat').textContent=Math.round(totFat*10)/10+'g';
+  document.getElementById('macroCalcDetails').innerHTML=details.join('');
+  document.getElementById('macroCalcResult').classList.remove('hidden');
+}
+
+// ============================================================
+// KCAL GIORNALIERE CONSUMATE
+// ============================================================
+let kcalDays = JSON.parse(localStorage.getItem('np_kcal_days')||'[]');
+
+function initKcalDate(){
+  const d=document.getElementById('kcalDate');
+  if(d) d.value=new Date().toISOString().split('T')[0];
+  // Pre-fill target from configurator if available
+  const t=document.getElementById('kcalTarget2');
+  if(t&&S.tdee&&S.tdee.target) t.value=S.tdee.target;
+}
+
+function saveKcalDay(){
+  const date=document.getElementById('kcalDate').value;
+  const consumed=parseInt(document.getElementById('kcalConsumate').value)||0;
+  const target=parseInt(document.getElementById('kcalTarget2').value)||0;
+  const note=document.getElementById('kcalNote').value.trim();
+  if(!date||!consumed){showToast('Inserisci data e kcal consumate','#E24B4A');return;}
+  kcalDays=kcalDays.filter(d=>d.date!==date);
+  kcalDays.push({date,consumed,target,note});
+  kcalDays.sort((a,b)=>a.date.localeCompare(b.date));
+  localStorage.setItem('np_kcal_days',JSON.stringify(kcalDays));
+  document.getElementById('kcalSaveMsg').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('kcalSaveMsg').classList.add('hidden'),2500);
+  ['kcalConsumate','kcalNote'].forEach(id=>document.getElementById(id).value='');
+  renderKcalHistory();
+}
+
+function renderKcalHistory(){
+  const el=document.getElementById('kcalHistory');
+  if(!kcalDays.length){el.innerHTML='<div class="no-data">Nessuna registrazione ancora.</div>';return;}
+  el.innerHTML=[...kcalDays].reverse().map(d=>{
+    const delta=d.target?d.consumed-d.target:null;
+    const deltaColor=delta===null?'var(--color-text-secondary)':delta>100?'#E24B4A':delta<-100?'#378ADD':'#1D9E75';
+    const deltaText=delta===null?'':(delta>0?'+':'')+delta+' kcal vs target';
+    return`<div class="item-row">
+      <span style="font-size:12px;color:var(--color-text-secondary);min-width:75px">${fmtDate(d.date)}</span>
+      <div style="flex:1;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column">
+          <span style="font-size:14px;font-weight:500;color:#1D9E75">${d.consumed} kcal</span>
+          <span style="font-size:10px;color:var(--color-text-secondary)">consumate</span>
+        </div>
+        ${d.target?`<div style="display:flex;flex-direction:column"><span style="font-size:12px;color:var(--color-text-secondary)">${d.target} kcal target</span><span style="font-size:11px;font-weight:500;color:${deltaColor}">${deltaText}</span></div>`:''}
+        ${d.note?`<span style="font-size:12px;font-style:italic;color:var(--color-text-secondary)">${d.note}</span>`:''}
+      </div>
+      <button class="btn sm danger" onclick="delKcalDay('${d.date}')"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }).join('');
+}
+
+function delKcalDay(date){
+  kcalDays=kcalDays.filter(d=>d.date!==date);
+  localStorage.setItem('np_kcal_days',JSON.stringify(kcalDays));
+  renderKcalHistory();
 }
 
 async function callAI(prompt,maxTokens=4000,model='claude-haiku-4-5-20251001'){const key=getKey();if(!key){showToast('API key mancante — vai su Setup','#E24B4A');return null;}const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})});const data=await res.json();if(data.error)throw new Error(data.error.message);return data.content.map(b=>b.type==='text'?b.text:'').join('').trim().replace(/```json|```/g,'').trim();}
