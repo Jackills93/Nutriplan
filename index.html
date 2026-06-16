@@ -699,35 +699,60 @@ function goToMenu(){if(S.cfg.done){document.getElementById('mKcal').value=S.tdee
 
 // Alias map — maps variations to canonical DB keys
 const NUTRIALIASES = {
-  "fiocchi d'avena": "avena", "fiocchi avena": "avena",
-  "latte parzialmente scremato": "latte parz", "latte intero": "latte",
-  "latte scremato": "latte scremato", "latte parz": "latte parz",
+  // Avena
+  "fiocchi d'avena": "avena", "fiocchi di avena": "avena", "fiocchi avena": "avena",
+  "farina d'avena": "avena",
+  // Latte
+  "latte parzialmente scremato": "latte parz", "latte parz. scremato": "latte parz",
+  "latte parz scremato": "latte parz", "latte parz": "latte parz",
+  "latte intero": "latte", "latte scremato": "latte scremato",
+  // Olio
+  "olio extravergine d'oliva": "olio evo", "olio extra vergine": "olio evo",
+  "olio evo": "olio evo", "olio e.v.o.": "olio evo",
+  // Pollo
   "petto di pollo": "petto pollo", "petto pollo": "petto pollo",
-  "yogurt greco": "yogurt greco", "yogurt greco 0%": "yogurt greco",
-  "pasta integrale": "pasta integrale", "pasta di semola": "pasta",
-  "riso integrale": "riso", "riso bianco": "riso",
-  "pane integrale": "pane integrale", "pane di segale": "pane integrale",
-  "gallette di riso": "gallette riso", "gallette": "gallette riso",
-  "olio evo": "olio evo", "olio extravergine": "olio evo",
-  "olio extravergine d'oliva": "olio evo", "olio d'oliva": "olio evo",
-  "pesca fresca": "pesche", "albicocche fresche": "albicocche",
+  "fesa di tacchino": "tacchino", "fettine di tacchino": "tacchino",
+  // Yogurt
+  "yogurt greco 0% fage": "yogurt greco", "yogurt greco 0%": "yogurt greco",
+  "yogurt greco magro": "yogurt greco", "yogurt greco intero": "yogurt greco",
+  // Gallette
+  "gallette di riso": "gallette riso", "gallette riso": "gallette riso",
+  // Frutta
+  "albicocche fresche": "albicocche", "albicocca fresca": "albicocche",
+  "pesche fresche": "pesche", "pesca fresca": "pesche", "peach fresca": "pesche",
   "fragole fresche": "fragole", "mirtilli freschi": "mirtilli",
-  "pomodorini": "pomodori", "pomodori pelati": "pomodori",
-  "patate lesse": "patate", "patate al forno": "patate",
-  "fagiolini lessati": "fagiolini", "fagiolini lessi": "fagiolini",
-  "merluzzo al forno": "merluzzo", "salmone al forno": "salmone",
+  "mele biologiche": "mela", "mela verde": "mela", "mela rossa": "mela",
+  // Verdure
+  "pomodorini": "pomodori", "pomodori ciliegino": "pomodori",
+  "pomodori pelati": "pomodori", "pomodori freschi": "pomodori",
+  "zucchine grigliate": "zucchine", "zucchine al vapore": "zucchine",
+  "spinaci freschi": "spinaci", "spinaci al vapore": "spinaci",
+  "insalata mista": "insalata", "insalata verde": "insalata",
+  "fagiolini lessati": "fagiolini", "fagiolini lessi": "fagiolini", "fagiolini al vapore": "fagiolini",
+  "patate lesse": "patate", "patate al forno": "patate", "patate bollite": "patate",
+  "broccoli al vapore": "broccoli", "cavolfiore al vapore": "cavolfiore",
+  // Pesce
+  "merluzzo al forno": "merluzzo", "merluzzo al vapore": "merluzzo",
+  "salmone al forno": "salmone", "salmone alla griglia": "salmone",
   "branzino al forno": "branzino", "orata al forno": "orata",
   "tonno in scatola": "tonno sott", "tonno sott'olio": "tonno sott",
-  "ricotta vaccina": "ricotta", "ricotta di pecora": "ricotta",
+  "tonno al naturale": "tonno sott",
+  // Latticini
+  "ricotta vaccina": "ricotta", "ricotta light": "ricotta light",
+  "ricotta di pecora": "ricotta", "ricotta fresca": "ricotta",
   "mozzarella di bufala": "mozzarella", "mozzarella fior di latte": "mozzarella",
-  "prosciutto crudo": "prosciutto", "bresaola": "manzo",
-  "zucchine grigliate": "zucchine", "melanzane grigliate": "melanzane",
-  "insalata mista": "insalata", "spinaci freschi": "spinaci",
+  "parmigiano reggiano": "parmigiano", "grana padano": "grana",
+  // Cereali
+  "pasta integrale a secco": "pasta integrale", "pasta di semola": "pasta",
+  "riso integrale": "riso", "riso basmati cotto": "riso",
+  "pane integrale": "pane integrale", "pane di segale": "pane integrale",
+  // Condimenti
   "basilico fresco": "basilico", "prezzemolo fresco": "prezzemolo",
-  "mandorle pelate": "mandorle", "noci sgusciate": "noci",
-  "semi di chia": "semi chia", "semi di girasole": "semi girasole",
   "miele millefiori": "miele", "miele d'acacia": "miele",
+  "mandorle pelate": "mandorle", "noci sgusciate": "noci",
 };
+
+
 
 const NUTRIDB = {
   // CEREALI E DERIVATI
@@ -770,6 +795,7 @@ const NUTRIDB = {
   'yogurt greco':    {k:59,p:10,c:3.6,f:0.4},
   'yogurt':          {k:61,p:3.5,c:7,f:3.2},
   'ricotta':         {k:146,p:11,c:3,f:10},
+  'ricotta light':   {k:110,p:11,c:3,f:6},
   'ricotta vaccina': {k:146,p:11,c:3,f:10},
   'mozzarella':      {k:254,p:18,c:2.2,f:20},
   'parmigiano':      {k:431,p:33,c:0,f:29},
@@ -866,20 +892,67 @@ const NUTRIDB = {
   'te':              {k:1,p:0,c:0.2,f:0},
 };
 
-// Normalize ingredient string using aliases
-function normalizeIngredient(str) {
-  let s = str.toLowerCase().trim();
-  // Try alias map first (longest match wins)
-  let bestAlias = null, bestLen = 0;
-  for (const [alias, canonical] of Object.entries(NUTRIALIASES)) {
-    if (s.includes(alias) && alias.length > bestLen) {
-      bestAlias = canonical;
-      bestLen = alias.length;
+// Levenshtein distance between two strings
+function levenshtein(a,b){
+  const m=a.length,n=b.length,dp=[];
+  for(let i=0;i<=m;i++){dp[i]=[];for(let j=0;j<=n;j++)dp[i][j]=i===0?j:j===0?i:0;}
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)
+    dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  return dp[m][n];
+}
+function strSim(a,b){const ml=Math.max(a.length,b.length);return ml===0?1:(ml-levenshtein(a,b))/ml;}
+
+// Token-based fuzzy match: each word in the DB key is checked against query words
+// "fiocchi di avena" matches "avena" because "avena" appears in query words
+function fuzzyMatchFood(part){
+  // Normalize: remove numbers/units/apostrophes/percentages
+  const clean=part
+    .replace(/[0-9]+(?:[.,][0-9]+)?\s*(?:g|ml|pezzi|fette|cucchiai|%|kcal)\b/g,'')
+    .replace(/['']/g,' ').replace(/\s+/g,' ').trim();
+  const qWords=clean.split(/\s+/).filter(w=>w.length>2);
+
+  // Step 1: alias exact match (normalized)
+  let bestAlias=null,bestAliasLen=0;
+  for(const [alias,canonical] of Object.entries(NUTRIALIASES)){
+    const na=alias.replace(/['']/g,' ');
+    if(clean.includes(na)&&na.length>bestAliasLen){
+      bestAliasLen=na.length;bestAlias=NUTRIDB[canonical]||null;
     }
   }
-  if (bestAlias) return bestAlias;
-  return s;
+  if(bestAlias)return bestAlias;
+
+  // Step 2: exact DB key substring
+  let bestExact=null,bestExactLen=0;
+  for(const [food,vals] of Object.entries(NUTRIDB)){
+    if(clean.includes(food)&&food.length>bestExactLen){bestExactLen=food.length;bestExact=vals;}
+  }
+  if(bestExact)return bestExact;
+
+  // Step 3: token fuzzy — all words of DB key must fuzzy-match words in query
+  let bestFuzzy=null,bestScore=0.78;
+  for(const [food,vals] of Object.entries(NUTRIDB)){
+    const fWords=food.split(/\s+/);
+    let totalScore=0;
+    for(const fw of fWords){
+      let best=0;
+      for(const qw of qWords){
+        // Exact word match
+        if(qw===fw){best=1;break;}
+        // qw contains fw as substring (e.g. "parzialmente" contains "parz")
+        if(qw.includes(fw)&&fw.length>2){best=Math.max(best,0.95);continue;}
+        // fuzzy word similarity
+        const s=strSim(qw,fw);
+        if(s>best)best=s;
+      }
+      totalScore+=best;
+    }
+    const avg=fWords.length>0?totalScore/fWords.length:0;
+    if(avg>bestScore){bestScore=avg;bestFuzzy=vals;}
+  }
+  return bestFuzzy;
 }
+
+function normalizeIngredient(str){return str.toLowerCase().trim();}
 
 // Parse ingredient string and calculate real kcal
 function parseIngredientKcal(ingredientStr) {
