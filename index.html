@@ -513,6 +513,17 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     <div id="foodResults"></div>
   </div>
 
+  <div class="card">
+    <div class="card-title"><i class="ti ti-file-import" style="color:#1D9E75"></i> Importa piano alimentare</div>
+    <div class="card-sub">Incolla un piano alimentare esistente (anche da altro software o da un nutrizionista) per analizzare quali alimenti consumi di più e ottimizzare il tuo menù.</div>
+    <div class="field">
+      <textarea id="pianoImportText" rows="6" placeholder="Incolla qui il tuo piano alimentare. Es:&#10;Lunedì - Colazione: latte 200ml, fiocchi avena 50g, banana&#10;Lunedì - Pranzo: pasta 80g, pollo 150g, insalata...&#10;&#10;Funziona anche con piani in formato libero o esportati da altre app." style="font-size:13px;resize:vertical"></textarea>
+    </div>
+    <button class="btn primary full" onclick="importPiano()"><i class="ti ti-sparkles"></i> Analizza piano</button>
+    <div id="pianoLoading" class="hidden" style="text-align:center;padding:1rem;font-size:13px;color:var(--color-text-secondary)"><div class="spinner" style="width:20px;height:20px;margin:0 auto .5rem;border-width:2px"></div>Analisi in corso...</div>
+    <div id="pianoResult" class="hidden" style="margin-top:1rem"></div>
+  </div>
+
   <div class="card" style="background:var(--color-background-secondary)">
     <div style="font-size:13px;font-weight:500;margin-bottom:.5rem"><i class="ti ti-shield-check"></i> Privacy</div>
     <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6">API key Anthropic, Bot Token e Chat ID sono salvati solo nel tuo browser (localStorage). Nessun dato viene trasmesso a server intermedi.</div>
@@ -674,6 +685,39 @@ function goToMenu(){if(S.cfg.done){document.getElementById('mKcal').value=S.tdee
 // ============================================================
 // TABELLA NUTRIZIONALE — valori per 100g (kcal, prot, carbo, grassi)
 // ============================================================
+
+// Alias map — maps variations to canonical DB keys
+const NUTRIALIASES = {
+  "fiocchi d'avena": "avena", "fiocchi avena": "avena",
+  "latte parzialmente scremato": "latte parz", "latte intero": "latte",
+  "latte scremato": "latte scremato", "latte parz": "latte parz",
+  "petto di pollo": "petto pollo", "petto pollo": "petto pollo",
+  "yogurt greco": "yogurt greco", "yogurt greco 0%": "yogurt greco",
+  "pasta integrale": "pasta integrale", "pasta di semola": "pasta",
+  "riso integrale": "riso", "riso bianco": "riso",
+  "pane integrale": "pane integrale", "pane di segale": "pane integrale",
+  "gallette di riso": "gallette riso", "gallette": "gallette riso",
+  "olio evo": "olio evo", "olio extravergine": "olio evo",
+  "olio extravergine d'oliva": "olio evo", "olio d'oliva": "olio evo",
+  "pesca fresca": "pesche", "albicocche fresche": "albicocche",
+  "fragole fresche": "fragole", "mirtilli freschi": "mirtilli",
+  "pomodorini": "pomodori", "pomodori pelati": "pomodori",
+  "patate lesse": "patate", "patate al forno": "patate",
+  "fagiolini lessati": "fagiolini", "fagiolini lessi": "fagiolini",
+  "merluzzo al forno": "merluzzo", "salmone al forno": "salmone",
+  "branzino al forno": "branzino", "orata al forno": "orata",
+  "tonno in scatola": "tonno sott", "tonno sott'olio": "tonno sott",
+  "ricotta vaccina": "ricotta", "ricotta di pecora": "ricotta",
+  "mozzarella di bufala": "mozzarella", "mozzarella fior di latte": "mozzarella",
+  "prosciutto crudo": "prosciutto", "bresaola": "manzo",
+  "zucchine grigliate": "zucchine", "melanzane grigliate": "melanzane",
+  "insalata mista": "insalata", "spinaci freschi": "spinaci",
+  "basilico fresco": "basilico", "prezzemolo fresco": "prezzemolo",
+  "mandorle pelate": "mandorle", "noci sgusciate": "noci",
+  "semi di chia": "semi chia", "semi di girasole": "semi girasole",
+  "miele millefiori": "miele", "miele d'acacia": "miele",
+};
+
 const NUTRIDB = {
   // CEREALI E DERIVATI
   'avena':           {k:389,p:17,c:66,f:7},
@@ -811,40 +855,68 @@ const NUTRIDB = {
   'te':              {k:1,p:0,c:0.2,f:0},
 };
 
+// Normalize ingredient string using aliases
+function normalizeIngredient(str) {
+  let s = str.toLowerCase().trim();
+  // Try alias map first (longest match wins)
+  let bestAlias = null, bestLen = 0;
+  for (const [alias, canonical] of Object.entries(NUTRIALIASES)) {
+    if (s.includes(alias) && alias.length > bestLen) {
+      bestAlias = canonical;
+      bestLen = alias.length;
+    }
+  }
+  if (bestAlias) return bestAlias;
+  return s;
+}
+
 // Parse ingredient string and calculate real kcal
 function parseIngredientKcal(ingredientStr) {
   const str = ingredientStr.toLowerCase();
   let totalKcal = 0;
   let found = false;
 
-  // Extract all "Xg" or "Xml" quantities with their context
-  const patterns = [
-    /(\d+(?:\.\d+)?)\s*g/g,
-    /(\d+(?:\.\d+)?)\s*ml/g,
-  ];
-
   // Split by '+' to process each ingredient separately
   const parts = str.split('+').map(p => p.trim());
 
   for (const part of parts) {
     let grams = 0;
-    const gramMatch = part.match(/(\d+(?:\.\d+)?)\s*(?:g|ml)/);
+    const gramMatch = part.match(/(\d+(?:\.+)?)\s*(?:g|ml)/);
     if (gramMatch) grams = parseFloat(gramMatch[1]);
     if (grams === 0) continue;
 
-    // Find matching food in DB
-    let bestMatch = null;
-    let bestScore = 0;
-    for (const [food, vals] of Object.entries(NUTRIDB)) {
-      if (part.includes(food)) {
-        if (food.length > bestScore) {
+    // Step 1: try alias normalization
+    const normalized = normalizeIngredient(part);
+    let vals = NUTRIDB[normalized];
+
+    // Step 2: direct lookup in DB
+    if (!vals) {
+      let bestScore = 0;
+      for (const [food, fvals] of Object.entries(NUTRIDB)) {
+        if (part.includes(food) && food.length > bestScore) {
           bestScore = food.length;
-          bestMatch = vals;
+          vals = fvals;
         }
       }
     }
-    if (bestMatch) {
-      totalKcal += Math.round(bestMatch.k * grams / 100);
+
+    // Step 3: partial word match (for compound names)
+    if (!vals) {
+      const words = part.replace(/\d+g?|ml|\+/g, '').trim().split(/\s+/);
+      for (const word of words) {
+        if (word.length < 4) continue;
+        for (const [food, fvals] of Object.entries(NUTRIDB)) {
+          if (food.includes(word) || word.includes(food)) {
+            vals = fvals;
+            break;
+          }
+        }
+        if (vals) break;
+      }
+    }
+
+    if (vals) {
+      totalKcal += Math.round(vals.k * grams / 100);
       found = true;
     }
   }
@@ -1226,6 +1298,101 @@ function stopScanner(){
   if(wrap)wrap.style.display='none';
   if(startBtn)startBtn.style.display='inline-flex';
   if(stopBtnEl)stopBtnEl.style.display='none';
+}
+
+
+async function importPiano(){
+  const txt = document.getElementById('pianoImportText').value.trim();
+  if(!txt){showToast('Incolla il piano alimentare prima di procedere.','#E24B4A');return;}
+  document.getElementById('pianoLoading').classList.remove('hidden');
+  document.getElementById('pianoResult').classList.add('hidden');
+
+  const prompt = `Analizza questo piano alimentare e restituisci:
+1. I 10 alimenti più consumati con frequenza e stima kcal/100g
+2. Il pattern calorico medio giornaliero
+3. Le carenze nutrizionali evidenti
+4. 3 suggerimenti per migliorare il piano
+
+PIANO ALIMENTARE:
+${txt}
+
+Rispondi SOLO con JSON valido senza backtick:
+{
+  "alimenti_frequenti": [
+    {"nome": "Pasta integrale", "frequenza": "5 volte/sett", "kcal_100g": 343, "categoria": "Carboidrati"},
+    {"nome": "Petto di pollo", "frequenza": "4 volte/sett", "kcal_100g": 110, "categoria": "Proteine"}
+  ],
+  "kcal_media_giorno": 1800,
+  "carenze": ["Omega-3 insufficienti", "Poca frutta fresca"],
+  "suggerimenti": ["Aggiungi pesce azzurro 2 volte a settimana", "Inserisci più legumi come fonte proteica vegetale", "Aumenta la frutta negli spuntini"]
+}`;
+
+  try{
+    const raw = await callAI(prompt, 2000);
+    const js = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}')+1);
+    const data = JSON.parse(js);
+    document.getElementById('pianoLoading').classList.add('hidden');
+
+    // Render results
+    const catColors = {
+      'Carboidrati': '#E6F1FB', 'Proteine': '#FAECE7',
+      'Frutta': '#E1F5EE', 'Verdure': '#E1F5EE',
+      'Latticini': '#EEEDFE', 'Grassi': '#FAEEDA', 'Altro': '#F1EFE8'
+    };
+    const catText = {
+      'Carboidrati': '#185FA5', 'Proteine': '#712B13',
+      'Frutta': '#0F6E56', 'Verdure': '#0F6E56',
+      'Latticini': '#3C3489', 'Grassi': '#633806', 'Altro': '#444'
+    };
+
+    const alimentiHtml = data.alimenti_frequenti.map(a => {
+      const bg = catColors[a.categoria] || '#F1EFE8';
+      const cl = catText[a.categoria] || '#444';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:.5rem 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+        <span class="badge" style="background:${bg};color:${cl};white-space:nowrap">${a.categoria}</span>
+        <span style="flex:1;font-size:13px;font-weight:500">${a.nome}</span>
+        <span style="font-size:12px;color:var(--color-text-secondary);white-space:nowrap">${a.frequenza}</span>
+        <span style="font-size:12px;color:#1D9E75;white-space:nowrap;font-weight:500">${a.kcal_100g} kcal</span>
+      </div>`;
+    }).join('');
+
+    const carenzaHtml = data.carenze.map(c =>
+      `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:13px;color:var(--color-text-primary)"><i class="ti ti-alert-triangle" style="color:#E24B4A;font-size:14px"></i>${c}</div>`
+    ).join('');
+
+    const suggHtml = data.suggerimenti.map((s,i) =>
+      `<div style="display:flex;gap:8px;padding:.5rem 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px">
+        <span style="width:20px;height:20px;border-radius:50%;background:#E1F5EE;color:#0F6E56;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${i+1}</span>
+        <span>${s}</span>
+      </div>`
+    ).join('');
+
+    document.getElementById('pianoResult').innerHTML = `
+      <div style="margin-bottom:1rem">
+        <div style="font-size:13px;font-weight:500;margin-bottom:.625rem">Alimenti più consumati</div>
+        ${alimentiHtml}
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;background:#E1F5EE;border-radius:var(--border-radius-md);padding:.75rem 1rem;margin-bottom:1rem">
+        <i class="ti ti-flame" style="color:#1D9E75;font-size:18px"></i>
+        <div>
+          <div style="font-size:18px;font-weight:500;color:#0F6E56">${data.kcal_media_giorno} kcal</div>
+          <div style="font-size:12px;color:#5DCAA5">media calorica giornaliera rilevata</div>
+        </div>
+      </div>
+      ${data.carenze.length ? `<div style="margin-bottom:1rem"><div style="font-size:13px;font-weight:500;margin-bottom:.5rem">Carenze rilevate</div>${carenzaHtml}</div>` : ''}
+      <div>
+        <div style="font-size:13px;font-weight:500;margin-bottom:.5rem">Suggerimenti</div>
+        ${suggHtml}
+      </div>
+      <button class="btn full" style="margin-top:1rem" onclick="document.getElementById('pianoImportText').value='';document.getElementById('pianoResult').classList.add('hidden')">
+        <i class="ti ti-refresh"></i> Analizza un altro piano
+      </button>
+    `;
+    document.getElementById('pianoResult').classList.remove('hidden');
+  } catch(e) {
+    document.getElementById('pianoLoading').classList.add('hidden');
+    showToast('Errore analisi: '+e.message,'#E24B4A');
+  }
 }
 
 // Keep old name for compatibility
