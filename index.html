@@ -670,7 +670,7 @@ document.getElementById('btnBack').onclick=function(){
 };const gl={cut:'Cut — deficit calorico',maintain:'Mantenimento',bulk:'Bulk — surplus calorico'};document.getElementById('sp3').innerHTML=`<div class="card" style="text-align:center;padding:1.5rem"><div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.5rem">Calorie giornaliere target</div><div class="result-big">${target} kcal/die</div><div style="font-size:13px;color:var(--color-text-secondary);margin-top:.5rem">${gl[goal]} · regime ${diet}</div><div class="mstrip" style="margin-top:1.25rem"><div class="mc"><div class="mv">${bmr}</div><div class="ml">BMR kcal</div></div><div class="mc"><div class="mv" style="color:#1D9E75">${prot}g</div><div class="ml">Proteine</div></div><div class="mc"><div class="mv" style="color:#378ADD">${carb}g</div><div class="ml">Carboidrati</div></div><div class="mc"><div class="mv" style="color:#BA7517">${fat}g</div><div class="ml">Grassi</div></div></div></div><button class="btn primary full" onclick="goToMenu()"><i class="ti ti-salad"></i> Genera menù settimanale</button>`;}
 function goToMenu(){if(S.cfg.done){document.getElementById('mKcal').value=S.tdee.target;document.getElementById('mProt').value=S.tdee.prot;document.getElementById('mCarb').value=S.tdee.carb;document.getElementById('mDiet').value=S.cfg.diet;const n=[...S.cfg.intol,...S.cfg.allergy].join(', ');if(n)document.getElementById('mNotes').value='Evitare: '+n;document.getElementById('menuFormSub').textContent='Dati importati dal configuratore — modificabili prima di generare.';}goTo('menu');}
 
-async function callAI(prompt,maxTokens=4000){const key=getKey();if(!key){showToast('API key mancante — vai su Setup','#E24B4A');return null;}const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})});const data=await res.json();if(data.error)throw new Error(data.error.message);return data.content.map(b=>b.type==='text'?b.text:'').join('').trim().replace(/```json|```/g,'').trim();}
+async function callAI(prompt,maxTokens=4000,model='claude-haiku-4-5-20251001'){const key=getKey();if(!key){showToast('API key mancante — vai su Setup','#E24B4A');return null;}const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})});const data=await res.json();if(data.error)throw new Error(data.error.message);return data.content.map(b=>b.type==='text'?b.text:'').join('').trim().replace(/```json|```/g,'').trim();}
 
 async function generateMenu(){
   const kcal=document.getElementById('mKcal').value,prot=document.getElementById('mProt').value,carb=document.getElementById('mCarb').value,diet=document.getElementById('mDiet').value,meals=document.getElementById('mMeals').value,notes=document.getElementById('mNotes').value;
@@ -684,29 +684,51 @@ async function generateMenu(){
   const trainNote2 = S.cfg.trainMode==='descrivi'&&S.cfg.trainData
     ? '\\n- Allenamento: '+S.cfg.trainData.freq+'x/sett, '+S.cfg.trainData.dur+' min, '+S.cfg.trainData.type+', intensita '+S.cfg.trainData.intensity+'. Aumenta carboidrati nei giorni di allenamento.'
     : '';
-  const prompt=`Sei un nutrizionista italiano esperto. Genera un menu settimanale di 7 giorni con queste specifiche:
-OBIETTIVO: ${kcal} kcal/die | Proteine: ${prot||'calcola'}g | Carboidrati: ${carb||'calcola'}g
-REGIME: ${diet} | PASTI AL GIORNO: ${meals}
-NOTE: ${notes||'nessuna'}
-${stagInfo ? 'STAGIONE: '+stagInfo.label+'. Usa obbligatoriamente prodotti stagionali italiani: '+stagInfo.prodotti+'.' : ''}
+  // Calculate macro percentages and fat target
+  const fatTarget = Math.round((parseInt(kcal)*0.28)/9);
+  const protPct = prot ? Math.round((prot*4/parseInt(kcal))*100) : 30;
+  const carbPct = carb ? Math.round((carb*4/parseInt(kcal))*100) : 47;
+  const fatPct = 100 - protPct - carbPct;
+
+  const prompt=`Sei un nutrizionista italiano esperto. Genera un menu settimanale PRECISO di 7 giorni.
+
+PARAMETRI NUTRIZIONALI GIORNALIERI OBBLIGATORI:
+- Calorie totali: ${kcal} kcal (tolleranza ±30 kcal)
+- Proteine: ${prot||Math.round(parseInt(kcal)*0.30/4)}g (${protPct}% delle kcal)
+- Carboidrati: ${carb||Math.round(parseInt(kcal)*0.47/4)}g (${carbPct}% delle kcal) — RISPETTA QUESTO VALORE
+- Grassi: ${fatTarget}g (${fatPct}% delle kcal)
+- Regime: ${diet} | Pasti al giorno: ${meals}
+- Note: ${notes||'nessuna'}
+${stagInfo ? 'STAGIONE: '+stagInfo.label+'. Usa prodotti stagionali italiani: '+stagInfo.prodotti+'.' : ''}
 ${trainNote2}
 
-REGOLE OBBLIGATORIE:
-- Ogni alimento deve avere la grammatura esatta. Esempio corretto: "Yogurt greco 0% 150g", "Pasta integrale 80g a secco", "Petto di pollo 160g"
-- Le kcal di ogni pasto devono essere calcolate in base alle grammature reali degli ingredienti
-- Il totale giornaliero deve essere ${kcal} kcal con tolleranza di massimo 50 kcal
-- Varia gli alimenti ogni giorno, niente ripetizioni consecutive
+REGOLE OBBLIGATORIE — RISPETTA TUTTE:
+1. Grammature ESATTE per ogni alimento (es: "Yogurt greco 0% Fage 150g", "Pasta integrale 80g a secco", "Petto di pollo 160g")
+2. I carboidrati DEVONO raggiungere ${carb||Math.round(parseInt(kcal)*0.47/4)}g/die — includi pane, pasta, riso, patate, frutta, legumi in quantità adeguate
+3. Le kcal di ogni pasto = somma kcal reali degli ingredienti con le loro grammature
+4. Totale giornaliero = ${kcal} kcal ±30 kcal
+5. Varia gli alimenti ogni giorno — no ripetizioni consecutive dello stesso piatto
+6. Per raggiungere ${carb||Math.round(parseInt(kcal)*0.47/4)}g di carboidrati al giorno DEVI includere combinazioni come:
+   - Colazione: cereali/avena/pane (30-60g carbo) + frutta (15-25g carbo)
+   - Pranzo: pasta/riso/patate 80-100g secchi (55-75g carbo) + verdure (5-10g carbo)
+   - Spuntini: frutta + yogurt/gallette (20-30g carbo ciascuno)
+   - Cena: patate/legumi/pane (25-40g carbo) + verdure (5-10g carbo)
+   - Totale minimo carbo: ${carb||Math.round(parseInt(kcal)*0.47/4)}g — NON scendere sotto questo valore
 
-Rispondi SOLO con JSON valido, niente testo prima o dopo:
-{"kcal_media":${kcal},"prot_media":${prot||0},"carb_media":${carb||0},"fat_media":0,"stagione":"${stagInfo?.label||'Nessuna'}","giorni":[{"kcal_totale":2000,"pasti":[{"tipo":"Colazione","descrizione":"Fiocchi avena 60g + latte 200ml","kcal":320},{"tipo":"Pranzo","descrizione":"Pasta integrale 80g + pollo 150g","kcal":480},{"tipo":"Cena","descrizione":"Salmone 180g + verdure 200g","kcal":420}]}]}
-Genera TUTTI e 7 i giorni (Lun-Dom) completi nel JSON.`;
-  try{const txt=await callAI(prompt,6000);clearInterval(iv);const js=txt.slice(txt.indexOf("{"),txt.lastIndexOf("}")+1);S.menu=JSON.parse(js);document.getElementById('menuLoading').classList.add('hidden');renderMenu(stagInfo);}
+Rispondi SOLO con JSON valido, nessun testo prima o dopo:
+{"kcal_media":${kcal},"prot_media":${prot||0},"carb_media":${carb||0},"fat_media":${fatTarget},"stagione":"${stagInfo?.label||'Nessuna'}","giorni":[{"kcal_totale":${kcal},"pasti":[{"tipo":"Colazione","descrizione":"Fiocchi avena 60g + latte parz. scremato 200ml + banana 100g","kcal":350},{"tipo":"Pranzo","descrizione":"Pasta integrale 90g a secco + petto pollo 150g + pomodorini 100g + olio EVO 8g","kcal":580},{"tipo":"Cena","descrizione":"Merluzzo 180g + patate lesse 250g + spinaci 150g + olio EVO 8g","kcal":480}]}]}
+IMPORTANTE: genera tutti e 7 i giorni completi (Lun-Dom).`;
+  try{const txt=await callAI(prompt,6000,'claude-sonnet-4-6');clearInterval(iv);const js=txt.slice(txt.indexOf("{"),txt.lastIndexOf("}")+1);S.menu=JSON.parse(js);document.getElementById('menuLoading').classList.add('hidden');renderMenu(stagInfo);}
   catch(e){clearInterval(iv);document.getElementById('menuLoading').classList.add('hidden');document.getElementById('menuGenForm').classList.remove('hidden');err.textContent='Errore: '+e.message;err.classList.remove('hidden');}
 }
 
 function renderMenu(stagInfo){
   const m=S.menu;
-  document.getElementById('menuMacros').innerHTML=`<div class="mc"><div class="mv" style="color:#1D9E75">${m.kcal_media}</div><div class="ml">kcal/die</div></div><div class="mc"><div class="mv">${m.prot_media}g</div><div class="ml">proteine</div></div><div class="mc"><div class="mv" style="color:#378ADD">${m.carb_media}g</div><div class="ml">carboidrati</div></div><div class="mc"><div class="mv" style="color:#BA7517">${m.fat_media}g</div><div class="ml">grassi</div></div>`;
+  // Calculate fat if AI returned 0 or undefined
+  const fatDisplay = (m.fat_media && m.fat_media > 0)
+    ? m.fat_media
+    : Math.round((m.kcal_media - m.prot_media*4 - m.carb_media*4) / 9);
+  document.getElementById('menuMacros').innerHTML=`<div class="mc"><div class="mv" style="color:#1D9E75">${m.kcal_media}</div><div class="ml">kcal/die</div></div><div class="mc"><div class="mv">${m.prot_media}g</div><div class="ml">proteine</div></div><div class="mc"><div class="mv" style="color:#378ADD">${m.carb_media}g</div><div class="ml">carboidrati</div></div><div class="mc"><div class="mv" style="color:#BA7517">${fatDisplay}g</div><div class="ml">grassi</div></div>`;
   document.getElementById('menuSeasonInfo').innerHTML=stagInfo?`<div style="display:flex;align-items:center;gap:8px;background:#E1F5EE;border-radius:var(--border-radius-md);padding:.625rem 1rem;font-size:12px;color:#0F6E56"><i class="ti ${stagInfo.icon}"></i><span><strong>${stagInfo.label}</strong> — menù costruito con prodotti di stagione italiani</span></div>`:'';
   const db=document.getElementById('menuDays');db.innerHTML='';
   m.giorni.forEach((g,i)=>{
