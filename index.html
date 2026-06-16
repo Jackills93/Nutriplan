@@ -548,13 +548,14 @@ function getTgConfig(){return{token:localStorage.getItem('np_tg_token')||'',chat
 function saveApiKey(){
   const v=document.getElementById('apikeyInput').value.trim();
   const err=document.getElementById('apikeyErr');
-  if(!v.startsWith('sk-ant-')){err.textContent='Chiave non valida. Deve iniziare con sk-ant-';err.classList.remove('hidden');return;}
+  if(!v){err.textContent='Inserisci la tua API key Anthropic.';err.classList.remove('hidden');return;}
+  err.classList.add('hidden');
   localStorage.setItem('np_apikey',v);
   document.getElementById('apikeyGate').classList.add('hidden');
   document.getElementById('mainApp').classList.remove('hidden');
   renderKeyDisplay();renderTrackHistory();initSeasonBadge();
 }
-function updateApiKey(){const v=document.getElementById('newKeyInput').value.trim();if(!v.startsWith('sk-ant-')){showToast('Chiave non valida');return;}localStorage.setItem('np_apikey',v);document.getElementById('newKeyInput').value='';renderKeyDisplay();const m=document.getElementById('settingsMsg');m.innerHTML='<i class="ti ti-check"></i> Chiave aggiornata.';m.classList.remove('hidden');setTimeout(()=>m.classList.add('hidden'),2500);}
+function updateApiKey(){const v=document.getElementById('newKeyInput').value.trim();if(!v){showToast('Inserisci una chiave valida','#E24B4A');return;}localStorage.setItem('np_apikey',v);document.getElementById('newKeyInput').value='';renderKeyDisplay();const m=document.getElementById('settingsMsg');m.innerHTML='<i class="ti ti-check"></i> Chiave aggiornata.';m.classList.remove('hidden');setTimeout(()=>m.classList.add('hidden'),2500);}
 function deleteApiKey(){if(!confirm('Rimuovere la chiave? Dovrai reinserirla al prossimo accesso.'))return;localStorage.removeItem('np_apikey');document.getElementById('mainApp').classList.add('hidden');document.getElementById('apikeyGate').classList.remove('hidden');document.getElementById('apikeyInput').value='';}
 function renderKeyDisplay(){const k=getKey();document.getElementById('keyCurrentDisplay').innerHTML=k?`<div style="display:flex;align-items:center;gap:8px;background:#E1F5EE;border-radius:var(--border-radius-md);padding:.5rem .875rem;font-size:12px;color:#0F6E56"><i class="ti ti-check"></i><span style="font-family:var(--font-mono);flex:1">${k.slice(0,12)}••••••••••••${k.slice(-4)}</span><span style="font-size:11px;opacity:.7">attiva</span></div>`:'';}
 
