@@ -273,6 +273,17 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     <div class="field"><label>Intolleranze</label><div class="tag-box" id="intolBox" onclick="document.getElementById('intolIn').focus()"><input type="text" id="intolIn" placeholder="Es: lattosio, glutine... (Invio)" onkeydown="addTag(event,'intol')"></div></div>
     <div class="field"><label>Allergie</label><div class="tag-box" id="allergyBox" onclick="document.getElementById('allergyIn').focus()"><input type="text" id="allergyIn" placeholder="Es: frutta secca, crostacei... (Invio)" onkeydown="addTag(event,'allergy')"></div></div>
   </div>
+
+  <div class="card" style="margin-top:-.25rem">
+    <div class="card-title"><i class="ti ti-file-import" style="color:#1D9E75"></i> Importa piano alimentare <span style="font-size:11px;font-weight:400;background:var(--color-background-secondary);border-radius:20px;padding:2px 8px;color:var(--color-text-secondary);margin-left:4px">opzionale</span></div>
+    <div class="card-sub">Hai già un piano alimentare? Importalo per analizzare i tuoi alimenti abituali e ottimizzare il menù generato.</div>
+    <div class="field">
+      <textarea id="pianoImportTextCfg" rows="4" placeholder="Incolla qui il tuo piano alimentare esistente. Es:&#10;Lunedì - Colazione: latte 200ml, fiocchi avena 50g&#10;Lunedì - Pranzo: pasta 80g, pollo 150g, insalata..." style="font-size:13px;resize:vertical"></textarea>
+    </div>
+    <button class="btn primary full" onclick="importPianoCfg()"><i class="ti ti-sparkles"></i> Analizza piano</button>
+    <div id="pianoLoadingCfg" class="hidden" style="text-align:center;padding:1rem;font-size:13px;color:var(--color-text-secondary)"><div class="spinner" style="width:20px;height:20px;margin:0 auto .5rem;border-width:2px"></div>Analisi in corso...</div>
+    <div id="pianoResultCfg" class="hidden" style="margin-top:1rem"></div>
+  </div>
 </div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem">
   <button class="btn" id="btnBack" style="display:none" onclick="cfgBack()"><i class="ti ti-arrow-left"></i> Indietro</button>
@@ -1301,11 +1312,27 @@ function stopScanner(){
 }
 
 
+
+async function importPianoCfg(){
+  await importPianoCore(
+    document.getElementById('pianoImportTextCfg').value.trim(),
+    'pianoLoadingCfg',
+    'pianoResultCfg'
+  );
+}
+
 async function importPiano(){
-  const txt = document.getElementById('pianoImportText').value.trim();
+  await importPianoCore(
+    document.getElementById('pianoImportText').value.trim(),
+    'pianoLoading',
+    'pianoResult'
+  );
+}
+
+async function importPianoCore(txt, loadingId, resultId){
   if(!txt){showToast('Incolla il piano alimentare prima di procedere.','#E24B4A');return;}
-  document.getElementById('pianoLoading').classList.remove('hidden');
-  document.getElementById('pianoResult').classList.add('hidden');
+  document.getElementById(loadingId).classList.remove('hidden');
+  document.getElementById(resultId).classList.add('hidden');
 
   const prompt = `Analizza questo piano alimentare e restituisci:
 1. I 10 alimenti più consumati con frequenza e stima kcal/100g
@@ -1324,32 +1351,23 @@ Rispondi SOLO con JSON valido senza backtick:
   ],
   "kcal_media_giorno": 1800,
   "carenze": ["Omega-3 insufficienti", "Poca frutta fresca"],
-  "suggerimenti": ["Aggiungi pesce azzurro 2 volte a settimana", "Inserisci più legumi come fonte proteica vegetale", "Aumenta la frutta negli spuntini"]
+  "suggerimenti": ["Aggiungi pesce azzurro 2 volte a settimana", "Inserisci più legumi", "Aumenta la frutta negli spuntini"]
 }`;
 
   try{
     const raw = await callAI(prompt, 2000);
     const js = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}')+1);
     const data = JSON.parse(js);
-    document.getElementById('pianoLoading').classList.add('hidden');
+    document.getElementById(loadingId).classList.add('hidden');
 
-    // Render results
-    const catColors = {
-      'Carboidrati': '#E6F1FB', 'Proteine': '#FAECE7',
-      'Frutta': '#E1F5EE', 'Verdure': '#E1F5EE',
-      'Latticini': '#EEEDFE', 'Grassi': '#FAEEDA', 'Altro': '#F1EFE8'
-    };
-    const catText = {
-      'Carboidrati': '#185FA5', 'Proteine': '#712B13',
-      'Frutta': '#0F6E56', 'Verdure': '#0F6E56',
-      'Latticini': '#3C3489', 'Grassi': '#633806', 'Altro': '#444'
-    };
+    const catColors = {'Carboidrati':'#E6F1FB','Proteine':'#FAECE7','Frutta':'#E1F5EE','Verdure':'#E1F5EE','Latticini':'#EEEDFE','Grassi':'#FAEEDA','Altro':'#F1EFE8'};
+    const catText = {'Carboidrati':'#185FA5','Proteine':'#712B13','Frutta':'#0F6E56','Verdure':'#0F6E56','Latticini':'#3C3489','Grassi':'#633806','Altro':'#444'};
 
     const alimentiHtml = data.alimenti_frequenti.map(a => {
-      const bg = catColors[a.categoria] || '#F1EFE8';
-      const cl = catText[a.categoria] || '#444';
-      return `<div style="display:flex;align-items:center;gap:10px;padding:.5rem 0;border-bottom:0.5px solid var(--color-border-tertiary)">
-        <span class="badge" style="background:${bg};color:${cl};white-space:nowrap">${a.categoria}</span>
+      const bg = catColors[a.categoria]||'#F1EFE8';
+      const cl = catText[a.categoria]||'#444';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:.5rem 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+        <span class="badge" style="background:${bg};color:${cl};white-space:nowrap;flex-shrink:0">${a.categoria}</span>
         <span style="flex:1;font-size:13px;font-weight:500">${a.nome}</span>
         <span style="font-size:12px;color:var(--color-text-secondary);white-space:nowrap">${a.frequenza}</span>
         <span style="font-size:12px;color:#1D9E75;white-space:nowrap;font-weight:500">${a.kcal_100g} kcal</span>
@@ -1357,7 +1375,7 @@ Rispondi SOLO con JSON valido senza backtick:
     }).join('');
 
     const carenzaHtml = data.carenze.map(c =>
-      `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:13px;color:var(--color-text-primary)"><i class="ti ti-alert-triangle" style="color:#E24B4A;font-size:14px"></i>${c}</div>`
+      `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:13px"><i class="ti ti-alert-triangle" style="color:#E24B4A;font-size:13px;flex-shrink:0"></i>${c}</div>`
     ).join('');
 
     const suggHtml = data.suggerimenti.map((s,i) =>
@@ -1367,33 +1385,34 @@ Rispondi SOLO con JSON valido senza backtick:
       </div>`
     ).join('');
 
-    document.getElementById('pianoResult').innerHTML = `
-      <div style="margin-bottom:1rem">
-        <div style="font-size:13px;font-weight:500;margin-bottom:.625rem">Alimenti più consumati</div>
+    document.getElementById(resultId).innerHTML = `
+      <div style="margin-bottom:.875rem">
+        <div style="font-size:13px;font-weight:500;margin-bottom:.5rem">Alimenti più consumati</div>
         ${alimentiHtml}
       </div>
-      <div style="display:flex;align-items:center;gap:10px;background:#E1F5EE;border-radius:var(--border-radius-md);padding:.75rem 1rem;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;gap:10px;background:#E1F5EE;border-radius:var(--border-radius-md);padding:.75rem 1rem;margin-bottom:.875rem">
         <i class="ti ti-flame" style="color:#1D9E75;font-size:18px"></i>
         <div>
           <div style="font-size:18px;font-weight:500;color:#0F6E56">${data.kcal_media_giorno} kcal</div>
           <div style="font-size:12px;color:#5DCAA5">media calorica giornaliera rilevata</div>
         </div>
       </div>
-      ${data.carenze.length ? `<div style="margin-bottom:1rem"><div style="font-size:13px;font-weight:500;margin-bottom:.5rem">Carenze rilevate</div>${carenzaHtml}</div>` : ''}
+      ${data.carenze.length ? `<div style="margin-bottom:.875rem"><div style="font-size:13px;font-weight:500;margin-bottom:.375rem">Carenze rilevate</div>${carenzaHtml}</div>` : ''}
       <div>
-        <div style="font-size:13px;font-weight:500;margin-bottom:.5rem">Suggerimenti</div>
+        <div style="font-size:13px;font-weight:500;margin-bottom:.375rem">Suggerimenti</div>
         ${suggHtml}
       </div>
-      <button class="btn full" style="margin-top:1rem" onclick="document.getElementById('pianoImportText').value='';document.getElementById('pianoResult').classList.add('hidden')">
+      <button class="btn full" style="margin-top:.875rem" onclick="document.getElementById('${resultId}').classList.add('hidden');document.getElementById('pianoImportText${resultId==='pianoResultCfg'?'Cfg':''}').value=''">
         <i class="ti ti-refresh"></i> Analizza un altro piano
       </button>
     `;
-    document.getElementById('pianoResult').classList.remove('hidden');
+    document.getElementById(resultId).classList.remove('hidden');
   } catch(e) {
-    document.getElementById('pianoLoading').classList.add('hidden');
+    document.getElementById(loadingId).classList.add('hidden');
     showToast('Errore analisi: '+e.message,'#E24B4A');
   }
 }
+
 
 // Keep old name for compatibility
 async function searchOFF(){ await searchFood(); }
