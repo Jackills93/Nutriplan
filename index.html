@@ -384,6 +384,25 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     </div>
     <button class="btn primary full" onclick="generateMenu()"><i class="ti ti-sparkles"></i> Genera menù</button>
     <div id="menuErr" class="hidden error-box"></div>
+
+    <div style="margin-top:1rem;padding-top:1rem;border-top:0.5px solid var(--color-border-tertiary)">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:.625rem">
+        <i class="ti ti-flask" style="font-size:13px;color:var(--color-text-tertiary)"></i>
+        <span style="font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.04em">Modalità test — nessun token consumato</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn sm" onclick="loadDemoMenu()" style="flex:1"><i class="ti ti-database"></i> Carica menù demo</button>
+        <button class="btn sm" onclick="toggleJsonImport()" style="flex:1"><i class="ti ti-code"></i> Importa JSON</button>
+      </div>
+      <div id="jsonImportBox" class="hidden" style="margin-top:.75rem">
+        <textarea id="menuJsonInput" rows="5" placeholder='Incolla qui un JSON menù già generato in precedenza...' style="font-size:11px;font-family:var(--font-mono);resize:vertical"></textarea>
+        <div style="display:flex;gap:8px;margin-top:.5rem">
+          <button class="btn primary sm" onclick="importMenuJson()" style="flex:1"><i class="ti ti-upload"></i> Carica JSON</button>
+          <button class="btn sm" onclick="copyCurrentMenuJson()" style="flex:1"><i class="ti ti-copy"></i> Copia menù attuale</button>
+        </div>
+        <div id="jsonImportErr" class="hidden error-box" style="margin-top:.5rem"></div>
+      </div>
+    </div>
   </div>
   <div id="menuLoading" class="hidden"><div class="loading-box"><div class="spinner"></div><div id="menuLoadMsg">Genero il menù con prodotti di stagione...</div></div></div>
   <div id="menuResult" class="hidden">
@@ -1630,6 +1649,101 @@ Rispondi SOLO con JSON valido senza backtick:
   }
 }
 
+
+
+// ============================================================
+// MODALITÀ TEST — menù demo e import JSON (zero token AI)
+// ============================================================
+const DEMO_MENU = {
+  "kcal_media": 2000, "prot_media": 150, "carb_media": 220, "fat_media": 65,
+  "stagione": "Estate",
+  "giorni": [
+    {"kcal_totale":2000,"pasti":[
+      {"tipo":"Colazione","descrizione":"Fiocchi d'avena 60g + latte parzialmente scremato 200ml + banana 120g + miele 10g","kcal":462},
+      {"tipo":"Spuntino mattina","descrizione":"Yogurt greco 0% 150g + albicocche fresche 150g","kcal":161},
+      {"tipo":"Pranzo","descrizione":"Pasta integrale 90g a secco + petto di pollo 150g + pomodorini 120g + olio EVO 10g","kcal":580},
+      {"tipo":"Spuntino pomeriggio","descrizione":"Anguria 250g + gallette di riso 20g","kcal":152},
+      {"tipo":"Cena","descrizione":"Merluzzo al forno 180g + patate lesse 220g + fagiolini 150g + olio EVO 8g","kcal":434}
+    ]},
+    {"kcal_totale":2000,"pasti":[
+      {"tipo":"Colazione","descrizione":"Pane integrale 60g + ricotta 80g + miele 10g + pesche 150g","kcal":420},
+      {"tipo":"Spuntino mattina","descrizione":"Mandorle 20g + mela 150g","kcal":195},
+      {"tipo":"Pranzo","descrizione":"Riso basmati 90g + salmone 150g + zucchine 150g + olio EVO 10g","kcal":610},
+      {"tipo":"Spuntino pomeriggio","descrizione":"Yogurt greco 150g + fragole 150g","kcal":140},
+      {"tipo":"Cena","descrizione":"Petto di pollo 180g + patate al forno 200g + insalata 100g + olio EVO 8g","kcal":485}
+    ]},
+    {"kcal_totale":2000,"pasti":[
+      {"tipo":"Colazione","descrizione":"Muesli 50g + latte parzialmente scremato 200ml + fragole 100g","kcal":390},
+      {"tipo":"Spuntino mattina","descrizione":"Banana 120g + noci 15g","kcal":205},
+      {"tipo":"Pranzo","descrizione":"Pasta integrale 90g a secco + tonno sott'olio 80g + pomodori 150g + olio EVO 8g","kcal":545},
+      {"tipo":"Spuntino pomeriggio","descrizione":"Ricotta 100g + miele 10g","kcal":176},
+      {"tipo":"Cena","descrizione":"Branzino al forno 200g + patate lesse 200g + carote 150g + olio EVO 10g","kcal":480}
+    ]},
+    {"kcal_totale":2000,"pasti":[
+      {"tipo":"Colazione","descrizione":"Fiocchi d'avena 60g + yogurt greco 150g + mirtilli 100g","kcal":405},
+      {"tipo":"Spuntino mattina","descrizione":"Mandorle 20g + pesche 150g","kcal":195},
+      {"tipo":"Pranzo","descrizione":"Riso integrale 90g + petto di pollo 160g + zucchine 150g + olio EVO 10g","kcal":600},
+      {"tipo":"Spuntino pomeriggio","descrizione":"Mela 150g + gallette di riso 20g","kcal":160},
+      {"tipo":"Cena","descrizione":"Merluzzo 180g + patate 200g + spinaci 150g + olio EVO 8g","kcal":420}
+    ]},
+    {"kcal_totale":2000,"pasti":[
+      {"tipo":"Colazione","descrizione":"Pane integrale 60g + uova 100g + pomodori 80g","kcal":380},
+      {"tipo":"Spuntino mattina","descrizione":"Yogurt greco 150g + banana 100g","kcal":210},
+      {"tipo":"Pranzo","descrizione":"Pasta integrale 90g a secco + ceci 100g + pomodorini 120g + olio EVO 10g","kcal":590},
+      {"tipo":"Spuntino pomeriggio","descrizione":"Anguria 200g + noci 15g","kcal":150},
+      {"tipo":"Cena","descrizione":"Salmone 170g + patate al forno 200g + insalata 100g + olio EVO 8g","kcal":495}
+    ]},
+    {"kcal_totale":2000,"pasti":[
+      {"tipo":"Colazione","descrizione":"Fiocchi d'avena 60g + latte parzialmente scremato 200ml + fragole 150g","kcal":420},
+      {"tipo":"Spuntino mattina","descrizione":"Mandorle 20g + albicocche fresche 150g","kcal":190},
+      {"tipo":"Pranzo","descrizione":"Riso basmati 90g + tonno sott'olio 80g + zucchine 150g + olio EVO 8g","kcal":560},
+      {"tipo":"Spuntino pomeriggio","descrizione":"Ricotta 100g + pesche 150g","kcal":200},
+      {"tipo":"Cena","descrizione":"Petto di pollo 180g + patate lesse 220g + fagiolini 150g + olio EVO 10g","kcal":520}
+    ]},
+    {"kcal_totale":2000,"pasti":[
+      {"tipo":"Colazione","descrizione":"Muesli 50g + yogurt greco 150g + banana 100g","kcal":410},
+      {"tipo":"Spuntino mattina","descrizione":"Noci 15g + mela 150g","kcal":175},
+      {"tipo":"Pranzo","descrizione":"Pasta integrale 90g a secco + petto di pollo 150g + melanzane 150g + olio EVO 10g","kcal":585},
+      {"tipo":"Spuntino pomeriggio","descrizione":"Anguria 250g + gallette di riso 20g","kcal":155},
+      {"tipo":"Cena","descrizione":"Branzino 190g + patate 200g + carote 150g + olio EVO 8g","kcal":465}
+    ]}
+  ]
+};
+
+function loadDemoMenu(){
+  S.menu = JSON.parse(JSON.stringify(DEMO_MENU)); // deep clone
+  S.menu = recalcMenuKcal(S.menu);
+  renderMenu(STAGIONI[getStagioneCorrente()]);
+  showToast('Menù demo caricato — zero token consumati');
+}
+
+function toggleJsonImport(){
+  document.getElementById('jsonImportBox').classList.toggle('hidden');
+}
+
+function importMenuJson(){
+  const raw = document.getElementById('menuJsonInput').value.trim();
+  const err = document.getElementById('jsonImportErr');
+  err.classList.add('hidden');
+  if(!raw){err.textContent='Incolla un JSON valido prima di procedere.';err.classList.remove('hidden');return;}
+  try{
+    const parsed = JSON.parse(raw);
+    if(!parsed.giorni || !parsed.giorni.length) throw new Error('JSON non valido: manca il campo "giorni".');
+    S.menu = recalcMenuKcal(parsed);
+    renderMenu(STAGIONI[getStagioneCorrente()]);
+    showToast('Menù importato da JSON — zero token consumati');
+    document.getElementById('jsonImportBox').classList.add('hidden');
+  }catch(e){
+    err.textContent='Errore parsing JSON: '+e.message;
+    err.classList.remove('hidden');
+  }
+}
+
+function copyCurrentMenuJson(){
+  if(!S.menu){showToast('Nessun menù attivo da copiare','#E24B4A');return;}
+  navigator.clipboard.writeText(JSON.stringify(S.menu, null, 2)).catch(()=>{});
+  showToast('JSON del menù attuale copiato!');
+}
 
 // Keep old name for compatibility
 async function searchOFF(){ await searchFood(); }
