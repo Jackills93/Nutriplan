@@ -147,7 +147,7 @@ input[type=range]{width:100%;accent-color:#1D9E75}
 <!-- API KEY GATE -->
 <!-- MAIN APP -->
 <div id="mainApp">
-<div class="app">
+<div class="app" autocomplete="off">
 
 <div class="nav">
   <button class="nav-btn active" onclick="goTo('configuratore')" id="nav-configuratore"><i class="ti ti-settings-2"></i>Configura</button>
@@ -171,14 +171,14 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     <div class="card-title"><i class="ti ti-user"></i> Dati personali</div>
     <div class="card-sub">Calcolano il tuo metabolismo basale (BMR) con la formula Mifflin-St Jeor.</div>
     <div class="g2">
-      <div class="field"><label>Età</label><input type="number" id="age" min="15" max="90" placeholder="es. 30"></div>
+      <div class="field"><label>Età</label><input type="number" id="age" autocomplete="off" min="15" max="90" placeholder="es. 30"></div>
       <div class="field"><label>Sesso biologico</label><select id="sex"><option value="">Seleziona</option><option value="m">Maschio</option><option value="f">Femmina</option></select></div>
     </div>
     <div class="g2">
-      <div class="field"><label>Peso (kg)</label><input type="number" id="weight" step="0.1" placeholder="es. 75"></div>
-      <div class="field"><label>Altezza (cm)</label><input type="number" id="height" placeholder="es. 175"></div>
+      <div class="field"><label>Peso (kg)</label><input type="number" id="weight" autocomplete="off" step="0.1" placeholder="es. 75"></div>
+      <div class="field"><label>Altezza (cm)</label><input type="number" id="height" autocomplete="off" placeholder="es. 175"></div>
     </div>
-    <div class="field"><label>% massa grassa <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--color-text-tertiary)">(opzionale — migliora la precisione)</span></label><input type="number" id="bodyfat" step="0.1" placeholder="es. 18"></div>
+    <div class="field"><label>% massa grassa <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--color-text-tertiary)">(opzionale — migliora la precisione)</span></label><input type="number" id="bodyfat" autocomplete="off" step="0.1" placeholder="es. 18"></div>
   </div>
 </div>
 <div class="step-panel" id="sp1">
@@ -283,7 +283,7 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     </div>
     <div id="panel-ean" style="display:none">
       <div style="display:flex;gap:8px">
-        <input type="number" id="eanInput" placeholder="Es: 8001120896063" style="flex:1;font-family:var(--font-mono);font-size:12px" onkeydown="if(event.key==='Enter')searchByEAN()">
+        <input type="number" id="eanInput" autocomplete="off" placeholder="Es: 8001120896063" style="flex:1;font-family:var(--font-mono);font-size:12px" onkeydown="if(event.key==='Enter')searchByEAN()">
         <button class="btn primary" onclick="searchByEAN()"><i class="ti ti-search"></i></button>
       </div>
     </div>
@@ -343,9 +343,9 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     <div class="card-sub" id="menuFormSub">Configura prima i tuoi dati nel tab Configura, oppure inserisci manualmente.</div>
     <div id="seasonBadge" class="season-badge"><i class="ti ti-leaf"></i> <span id="seasonText"></span></div>
     <div class="g3">
-      <div class="field"><label>Calorie/die</label><input type="number" id="mKcal" placeholder="es. 2200"></div>
-      <div class="field"><label>Proteine (g)</label><input type="number" id="mProt" placeholder="es. 160"></div>
-      <div class="field"><label>Carboidrati (g)</label><input type="number" id="mCarb" placeholder="es. 240"></div>
+      <div class="field"><label>Calorie/die</label><input type="number" id="mKcal" autocomplete="off" placeholder="es. 2200"></div>
+      <div class="field"><label>Proteine (g)</label><input type="number" id="mProt" autocomplete="off" placeholder="es. 160"></div>
+      <div class="field"><label>Carboidrati (g)</label><input type="number" id="mCarb" autocomplete="off" placeholder="es. 240"></div>
     </div>
     <div class="g2">
       <div class="field"><label>Regime</label><select id="mDiet"><option value="onnivoro">Onnivoro</option><option value="vegetariano">Vegetariano</option><option value="vegano">Vegano</option></select></div>
@@ -454,7 +454,7 @@ input[type=range]{width:100%;accent-color:#1D9E75}
         <div class="field"><label>N° ricette</label><select id="frigoNum"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></div>
       </div>
       <div class="g2">
-        <div class="field"><label>Kcal/porzione (opz.)</label><input type="number" id="frigoKcal" placeholder="es. 500"></div>
+        <div class="field"><label>Kcal/porzione (opz.)</label><input type="number" id="frigoKcal" autocomplete="off" placeholder="es. 500"></div>
         <div class="field"><label>Tempo max</label><select id="frigoTime"><option value="qualsiasi">Qualsiasi</option><option value="15">15 min</option><option value="30" selected>30 min</option><option value="60">60 min</option></select></div>
       </div>
       <button class="btn primary full" onclick="generateFrigoAlgo()"><i class="ti ti-chef-hat"></i> Trova ricette</button>
@@ -482,9 +482,9 @@ input[type=range]{width:100%;accent-color:#1D9E75}
   <div id="tp-ins">
     <div class="card">
       <div class="card-title"><i class="ti ti-ruler-measure"></i> Nuova rilevazione</div>
-      <div class="g2"><div class="field"><label>Data</label><input type="date" id="tDate"></div><div class="field"><label>Peso (kg)</label><input type="number" id="tWeight" step="0.1" placeholder="es. 78.5"></div></div>
+      <div class="g2"><div class="field"><label>Data</label><input type="date" id="tDate"></div><div class="field"><label>Peso (kg)</label><input type="number" id="tWeight" autocomplete="off" step="0.1" placeholder="es. 78.5"></div></div>
       <div style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.625rem">Circonferenze cm — opzionale</div>
-      <div class="g3"><div class="field"><label>Vita</label><input type="number" id="tWaist" step="0.5" placeholder="82"></div><div class="field"><label>Fianchi</label><input type="number" id="tHips" step="0.5" placeholder="98"></div><div class="field"><label>% grasso</label><input type="number" id="tBf" step="0.1" placeholder="18"></div></div>
+      <div class="g3"><div class="field"><label>Vita</label><input type="number" id="tWaist" autocomplete="off" step="0.5" placeholder="82"></div><div class="field"><label>Fianchi</label><input type="number" id="tHips" autocomplete="off" step="0.5" placeholder="98"></div><div class="field"><label>% grasso</label><input type="number" id="tBf" autocomplete="off" step="0.1" placeholder="18"></div></div>
       <div class="field"><label>Note</label><input type="text" id="tNote" placeholder="Es: settimana di carico, stress lavorativo..."></div>
       <button class="btn primary full" onclick="saveEntry()"><i class="ti ti-plus"></i> Salva rilevazione</button>
       <div id="tSaveMsg" class="hidden" style="margin-top:.625rem;background:#E1F5EE;border-radius:var(--border-radius-md);padding:.5rem .875rem;font-size:13px;color:#0F6E56"><i class="ti ti-check"></i> Rilevazione salvata.</div>
@@ -500,7 +500,7 @@ input[type=range]{width:100%;accent-color:#1D9E75}
   <div id="tp-obj" style="display:none">
     <div class="card">
       <div class="card-title" style="margin-bottom:.875rem"><i class="ti ti-target"></i> Imposta obiettivo</div>
-      <div class="g2"><div class="field"><label>Peso iniziale (kg)</label><input type="number" id="gStart" step="0.1" placeholder="es. 85"></div><div class="field"><label>Peso target (kg)</label><input type="number" id="gTarget" step="0.1" placeholder="es. 78"></div></div>
+      <div class="g2"><div class="field"><label>Peso iniziale (kg)</label><input type="number" id="gStart" autocomplete="off" step="0.1" placeholder="es. 85"></div><div class="field"><label>Peso target (kg)</label><input type="number" id="gTarget" autocomplete="off" step="0.1" placeholder="es. 78"></div></div>
       <div class="g2"><div class="field"><label>Tipo</label><select id="gType"><option value="cut">Cut</option><option value="maintain">Mantenimento</option><option value="bulk">Bulk</option></select></div><div class="field"><label>Scadenza</label><input type="date" id="gDeadline"></div></div>
       <button class="btn primary full" onclick="saveGoal()"><i class="ti ti-check"></i> Salva obiettivo</button>
     </div>
@@ -545,8 +545,8 @@ input[type=range]{width:100%;accent-color:#1D9E75}
       <div class="step-row"><div class="step-num">1</div><div class="step-text">Apri Telegram → cerca <a href="https://t.me/BotFather" target="_blank">@BotFather</a> → scrivi <code>/newbot</code> → copia il <strong>Bot Token</strong>.</div></div>
       <div class="step-row"><div class="step-num">2</div><div class="step-text">Cerca <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a> → scrivi <code>/start</code> → copia il tuo <strong>Chat ID</strong> (numero).</div></div>
       <div class="step-row"><div class="step-num">3</div><div class="step-text">Apri il tuo bot su Telegram e scrivi <code>/start</code> per attivarlo. Poi incolla qui sotto e clicca Salva.</div></div>
-      <div class="field"><label>Bot Token</label><input type="password" id="tgToken" placeholder="123456789:ABCdef..." style="font-family:var(--font-mono);font-size:12px"></div>
-      <div class="field"><label>Chat ID</label><input type="text" id="tgChatId" placeholder="es. 734571285"></div>
+      <div class="field"><label>Bot Token</label><input type="password" id="tgToken" autocomplete="new-password" placeholder="123456789:ABCdef..." style="font-family:var(--font-mono);font-size:12px"></div>
+      <div class="field"><label>Chat ID</label><input type="text" id="tgChatId" autocomplete="off" placeholder="es. 734571285"></div>
       <button class="btn tg full" id="tgSaveBtn" onclick="saveTelegram()"><i class="ti ti-brand-telegram"></i> Verifica e salva</button>
       <div id="tgSaveMsg" class="hidden" style="margin-top:.75rem"></div>
     </div>
@@ -820,31 +820,7 @@ function parseIngredientKcal(ingredientStr) {
   const m = parseIngredientMacros(ingredientStr);
   return m ? m.kcal : null;
 }
-      }
-    }
 
-    // Step 3: partial word match (for compound names)
-    if (!vals) {
-      const words = part.replace(/\d+g?|ml|\+/g, '').trim().split(/\s+/);
-      for (const word of words) {
-        if (word.length < 4) continue;
-        for (const [food, fvals] of Object.entries(NUTRIDB)) {
-          if (food.includes(word) || word.includes(food)) {
-            vals = fvals;
-            break;
-          }
-        }
-        if (vals) break;
-      }
-    }
-
-    if (vals) {
-      totalKcal += Math.round(vals.k * grams / 100);
-      found = true;
-    }
-  }
-  return found ? totalKcal : null;
-}
 
 // Recalculate all meal macros from CREA DB
 function recalcMenuKcal(menuData) {
