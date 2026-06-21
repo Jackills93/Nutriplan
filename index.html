@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NutriPlan — Il tuo piano nutrizionale personalizzato</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="NutriPlan">
+<meta name="theme-color" content="#1D9E75">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/jackills93/Nutriplan/main/icon-192.png">
 <style>
 :root{
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -24,6 +31,29 @@
   --border-radius-md: 8px;
   --border-radius-lg: 12px;
 }
+[data-theme="dark"]{
+  --color-background-primary: #1a1a1a;
+  --color-background-secondary: #252525;
+  --color-background-danger: #3b1212;
+  --color-text-primary: #f0f0f0;
+  --color-text-secondary: #aaaaaa;
+  --color-text-tertiary: #666666;
+  --color-text-danger: #f87171;
+  --color-border-primary: #333333;
+  --color-border-secondary: #3a3a3a;
+  --color-border-tertiary: #2a2a2a;
+  --color-border-danger: #7f1d1d;
+}
+[data-theme="dark"] body{background:#111111}
+[data-theme="dark"] .nav{background:#1a1a1a}
+[data-theme="dark"] .nav-btn.active{background:#252525;border-color:#333}
+[data-theme="dark"] .field input,[data-theme="dark"] .field select,[data-theme="dark"] .field textarea{background:#252525;color:#f0f0f0;border-color:#3a3a3a}
+[data-theme="dark"] .tag-box{background:#252525;border-color:#3a3a3a}
+[data-theme="dark"] .tag-box input{color:#f0f0f0}
+[data-theme="dark"] .rc,[data-theme="dark"] .gc{background:#252525}
+[data-theme="dark"] .rc.sel,[data-theme="dark"] .gc.sel{background:#0d2e22}
+[data-theme="dark"] .day-hdr{background:#252525}
+[data-theme="dark"] .day-hdr:hover{background:#2e2e2e}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-sans);background:#f9f9f9;color:var(--color-text-primary);min-height:100vh}
 .app{max-width:680px;margin:0 auto;padding:.75rem 1rem 2rem}
@@ -126,6 +156,8 @@ body{font-family:var(--font-sans);background:#f9f9f9;color:var(--color-text-prim
 .upload-area{border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);padding:1.25rem;text-align:center;cursor:pointer;background:var(--color-background-secondary)}
 .upload-area:hover{border-color:#5DCAA5;background:#E1F5EE}
 .hidden{display:none}
+.onb-slide{transition:opacity .3s}
+.onb-slide.hidden{display:none}
 .toast{position:fixed;top:16px;right:16px;background:#1D9E75;color:#fff;border-radius:var(--border-radius-md);padding:.5rem 1rem;font-size:13px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
 .toast.show{opacity:1}
 .season-badge{display:inline-flex;align-items:center;gap:5px;background:#E1F5EE;border-radius:20px;padding:3px 10px;font-size:12px;color:#0F6E56;font-weight:500;margin-bottom:.875rem}
@@ -147,6 +179,54 @@ input[type=range]{width:100%;accent-color:#1D9E75}
 <!-- API KEY GATE -->
 <!-- MAIN APP -->
 <div id="mainApp">
+
+<!-- ONBOARDING -->
+<div id="onboarding" class="hidden" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1.25rem;text-align:center;background:var(--color-background-primary)">
+  <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#1D9E75,#0F6E56);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem">
+    <i class="ti ti-salad" style="font-size:30px;color:#fff"></i>
+  </div>
+  <div style="font-size:24px;font-weight:600;margin-bottom:.5rem">NutriPlan</div>
+  <div style="font-size:14px;color:var(--color-text-secondary);margin-bottom:2rem;line-height:1.6;max-width:340px">Il tuo piano nutrizionale personale basato sul database CREA — italiano, gratuito, offline.</div>
+
+  <div id="onbSlides">
+    <!-- Slide 1 -->
+    <div class="onb-slide active" id="onb0">
+      <div style="font-size:36px;margin-bottom:1rem">🥗</div>
+      <div style="font-size:17px;font-weight:600;margin-bottom:.5rem">Menù personalizzato</div>
+      <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;max-width:300px;margin:0 auto">Genera un menù settimanale bilanciato basato sui tuoi macro, regime alimentare e prodotti di stagione.</div>
+    </div>
+    <!-- Slide 2 -->
+    <div class="onb-slide hidden" id="onb1">
+      <div style="font-size:36px;margin-bottom:1rem">📊</div>
+      <div style="font-size:17px;font-weight:600;margin-bottom:.5rem">Calcoli precisi</div>
+      <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;max-width:300px;margin:0 auto">680 alimenti dal database ufficiale CREA. Proteine, carboidrati e grassi calcolati al grammo per ogni pasto.</div>
+    </div>
+    <!-- Slide 3 -->
+    <div class="onb-slide hidden" id="onb2">
+      <div style="font-size:36px;margin-bottom:1rem">🛒</div>
+      <div style="font-size:17px;font-weight:600;margin-bottom:.5rem">Lista spesa automatica</div>
+      <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;max-width:300px;margin:0 auto">Dal menù alla spesa in un click. Invia la lista su Telegram o copiala negli appunti.</div>
+    </div>
+    <!-- Slide 4 -->
+    <div class="onb-slide hidden" id="onb3">
+      <div style="font-size:36px;margin-bottom:1rem">📏</div>
+      <div style="font-size:17px;font-weight:600;margin-bottom:.5rem">Tracking misure</div>
+      <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;max-width:300px;margin:0 auto">Registra peso, circonferenze e % grasso. Visualizza i grafici di andamento nel tempo.</div>
+    </div>
+  </div>
+
+  <!-- Dots -->
+  <div style="display:flex;gap:6px;justify-content:center;margin:1.5rem 0" id="onbDots">
+    <div style="width:8px;height:8px;border-radius:50%;background:#1D9E75" id="dot0"></div>
+    <div style="width:8px;height:8px;border-radius:50%;background:var(--color-border-secondary)" id="dot1"></div>
+    <div style="width:8px;height:8px;border-radius:50%;background:var(--color-border-secondary)" id="dot2"></div>
+    <div style="width:8px;height:8px;border-radius:50%;background:var(--color-border-secondary)" id="dot3"></div>
+  </div>
+
+  <button class="btn primary" id="onbNext" onclick="onbNextSlide()" style="width:100%;max-width:320px;padding:12px;font-size:15px">Avanti <i class="ti ti-arrow-right"></i></button>
+  <button class="btn" onclick="finishOnboarding()" style="margin-top:.75rem;width:100%;max-width:320px;color:var(--color-text-secondary);border:none">Salta intro</button>
+</div>
+
 <div class="app" autocomplete="off">
 
 <div class="nav">
@@ -291,32 +371,6 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     <div id="foodResults"></div>
   </div>
 
-  <!-- CALCOLO MACRO PASTO -->
-  <div class="card" style="margin-top:-.25rem">
-    <div class="card-title"><i class="ti ti-calculator" style="color:#1D9E75"></i> Calcolo macro pasto</div>
-    <div class="card-sub">Inserisci gli ingredienti con le grammature per calcolare istantaneamente i valori nutrizionali. Nessuna chiamata AI — usa il database locale.</div>
-    <div id="macroCalcRows">
-      <div class="macro-calc-row" style="display:flex;gap:6px;margin-bottom:6px">
-        <input type="text" placeholder="Ingrediente (es: pasta integrale)" style="flex:2;font-size:12px" class="macro-ing">
-        <input type="number" placeholder="g" style="width:65px;font-size:12px" class="macro-gr">
-        <button class="btn sm" onclick="removeMacroRow(this)" style="flex-shrink:0"><i class="ti ti-x"></i></button>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:1rem">
-      <button class="btn sm" onclick="addMacroRow()"><i class="ti ti-plus"></i> Ingrediente</button>
-      <button class="btn primary" onclick="calcMacro()"><i class="ti ti-calculator"></i> Calcola</button>
-      <button class="btn sm" onclick="resetMacro()"><i class="ti ti-refresh"></i> Reset</button>
-    </div>
-    <div id="macroCalcResult" class="hidden">
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
-        <div class="mc"><div class="mv" style="color:#1D9E75" id="mcKcal">0</div><div class="ml">kcal</div></div>
-        <div class="mc"><div class="mv" id="mcProt">0g</div><div class="ml">proteine</div></div>
-        <div class="mc"><div class="mv" style="color:#378ADD" id="mcCarb">0g</div><div class="ml">carboidrati</div></div>
-        <div class="mc"><div class="mv" style="color:#BA7517" id="mcFat">0g</div><div class="ml">grassi</div></div>
-      </div>
-      <div id="macroCalcDetails" style="margin-top:.75rem;font-size:12px;color:var(--color-text-secondary)"></div>
-    </div>
-  </div>
 
   <div class="card" style="margin-top:-.25rem">
     <div class="card-title"><i class="ti ti-file-import" style="color:#1D9E75"></i> Importa piano alimentare <span style="font-size:11px;font-weight:400;background:var(--color-background-secondary);border-radius:20px;padding:2px 8px;color:var(--color-text-secondary);margin-left:4px">opzionale</span></div>
@@ -365,24 +419,6 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     <button class="btn primary full" onclick="generateMenuLocal()"><i class="ti ti-database"></i> Genera menù settimanale</button>
     <div id="menuErr" class="hidden error-box"></div>
 
-    <div style="margin-top:1rem;padding-top:1rem;border-top:0.5px solid var(--color-border-tertiary)">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:.625rem">
-        <i class="ti ti-flask" style="font-size:13px;color:var(--color-text-tertiary)"></i>
-        <span style="font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.04em">Modalità test — nessun token consumato</span>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn sm" onclick="loadDemoMenu()" style="flex:1"><i class="ti ti-database"></i> Carica menù demo</button>
-        <button class="btn sm" onclick="toggleJsonImport()" style="flex:1"><i class="ti ti-code"></i> Importa JSON</button>
-      </div>
-      <div id="jsonImportBox" class="hidden" style="margin-top:.75rem">
-        <textarea id="menuJsonInput" rows="5" placeholder='Incolla qui un JSON menù già generato in precedenza...' style="font-size:11px;font-family:var(--font-mono);resize:vertical"></textarea>
-        <div style="display:flex;gap:8px;margin-top:.5rem">
-          <button class="btn primary sm" onclick="importMenuJson()" style="flex:1"><i class="ti ti-upload"></i> Carica JSON</button>
-          <button class="btn sm" onclick="copyCurrentMenuJson()" style="flex:1"><i class="ti ti-copy"></i> Copia menù attuale</button>
-        </div>
-        <div id="jsonImportErr" class="hidden error-box" style="margin-top:.5rem"></div>
-      </div>
-    </div>
   </div>
   <div id="menuLoading" class="hidden"><div class="loading-box"><div class="spinner"></div><div id="menuLoadMsg">Genero il menù con prodotti di stagione...</div></div></div>
   <div id="menuResult" class="hidden">
@@ -391,7 +427,18 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     <div id="menuDays"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:.75rem">
       <button class="btn primary" onclick="sendToSpesa()"><i class="ti ti-shopping-cart"></i> Genera lista spesa</button>
+      <button class="btn" onclick="exportMenuPDF()"><i class="ti ti-file-type-pdf"></i> Esporta PDF</button>
+      <button class="btn" onclick="showMenuQR()"><i class="ti ti-qrcode"></i> QR / Link</button>
       <button class="btn" onclick="resetMenu()"><i class="ti ti-refresh"></i> Rigenera</button>
+    </div>
+    <div id="menuQRPanel" class="hidden" style="margin-top:.875rem;background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:1rem;text-align:center">
+      <div style="font-size:13px;font-weight:500;margin-bottom:.75rem">Condividi il menù</div>
+      <div id="menuQRCode" style="display:inline-block;background:#fff;padding:12px;border-radius:8px;margin-bottom:.75rem"></div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="btn sm primary" onclick="copyMenuLink()"><i class="ti ti-copy"></i> Copia link</button>
+        <button class="btn sm" onclick="document.getElementById('menuQRPanel').classList.add('hidden')"><i class="ti ti-x"></i> Chiudi</button>
+      </div>
+      <div id="menuLinkBox" style="margin-top:.5rem;font-size:11px;color:var(--color-text-secondary);word-break:break-all"></div>
     </div>
   </div>
 </div>
@@ -478,6 +525,7 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     <button onclick="trackTab('and')" id="tb-and" style="flex:1;padding:6px;border:none;background:transparent;border-radius:var(--border-radius-md);font-size:11px;font-weight:500;color:var(--color-text-secondary);cursor:pointer">Andamento</button>
     <button onclick="trackTab('obj')" id="tb-obj" style="flex:1;padding:6px;border:none;background:transparent;border-radius:var(--border-radius-md);font-size:11px;font-weight:500;color:var(--color-text-secondary);cursor:pointer">Obiettivo</button>
     <button onclick="trackTab('kcal')" id="tb-kcal" style="flex:1;padding:6px;border:none;background:transparent;border-radius:var(--border-radius-md);font-size:11px;font-weight:500;color:var(--color-text-secondary);cursor:pointer">Kcal</button>
+    <button onclick="trackTab('idro')" id="tb-idro" style="flex:1;padding:6px;border:none;background:transparent;border-radius:var(--border-radius-md);font-size:11px;font-weight:500;color:var(--color-text-secondary);cursor:pointer">Acqua</button>
   </div>
   <div id="tp-ins">
     <div class="card">
@@ -528,28 +576,87 @@ input[type=range]{width:100%;accent-color:#1D9E75}
       <div id="kcalHistory"><div class="no-data">Nessuna registrazione ancora.</div></div>
     </div>
   </div>
+
+  <!-- IDRATAZIONE -->
+  <div id="tp-idro" style="display:none">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-droplet" style="color:#2AABEE"></i> Fabbisogno idrico</div>
+      <div class="card-sub">Calcolato in base al peso corporeo, attività fisica e obiettivo.</div>
+      <div id="idroResult">
+        <div class="no-data">Completa il configuratore per calcolare il fabbisogno idrico.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:.875rem"><i class="ti ti-glass-full"></i> Tracking acqua oggi</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem">
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-bottom:4px">
+            <span>Bevuto oggi</span>
+            <span id="idroTodayLbl" style="font-weight:500;color:#2AABEE">0 ml</span>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" id="idroTodayFill" style="width:0%;background:#2AABEE"></div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.75rem">
+        <button class="btn sm" onclick="addIdro(200)"><i class="ti ti-glass-full"></i> +200ml</button>
+        <button class="btn sm" onclick="addIdro(330)">+330ml</button>
+        <button class="btn sm" onclick="addIdro(500)">+500ml</button>
+        <button class="btn sm" onclick="addIdro(750)">+750ml</button>
+        <button class="btn sm danger" onclick="resetIdroDay()"><i class="ti ti-refresh"></i> Reset</button>
+      </div>
+      <div id="idroLog" style="font-size:12px;color:var(--color-text-secondary)"></div>
+    </div>
+  </div>
 </div>
 
 <!-- IMPOSTAZIONI -->
 <div class="screen" id="screen-impostazioni">
   <div class="card">
     <div class="card-title"><i class="ti ti-brand-telegram" style="color:#2AABEE"></i> Integrazione Telegram</div>
-    <div class="card-sub">Ricevi la lista della spesa direttamente su Telegram.</div>
+    <div class="card-sub">Ricevi la lista della spesa su Telegram. Usa il bot NutriPlan già pronto — ti basta il tuo Chat ID.</div>
     <div id="tgConfigured" class="hidden tg-badge">
       <i class="ti ti-check"></i>
-      <span>Telegram configurato — <strong id="tgBotName"></strong></span>
+      <span>Telegram attivo — Chat ID <strong id="tgBotName"></strong></span>
       <button class="btn sm danger" onclick="resetTelegram()" style="margin-left:auto">Rimuovi</button>
     </div>
     <div id="tgSetupSteps">
-      <div style="font-size:13px;font-weight:500;margin-bottom:.875rem">Come configurare (3 minuti):</div>
-      <div class="step-row"><div class="step-num">1</div><div class="step-text">Apri Telegram → cerca <a href="https://t.me/BotFather" target="_blank">@BotFather</a> → scrivi <code>/newbot</code> → copia il <strong>Bot Token</strong>.</div></div>
-      <div class="step-row"><div class="step-num">2</div><div class="step-text">Cerca <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a> → scrivi <code>/start</code> → copia il tuo <strong>Chat ID</strong> (numero).</div></div>
-      <div class="step-row"><div class="step-num">3</div><div class="step-text">Apri il tuo bot su Telegram e scrivi <code>/start</code> per attivarlo. Poi incolla qui sotto e clicca Salva.</div></div>
-      <div class="field"><label>Bot Token</label><input type="password" id="tgToken" autocomplete="new-password" placeholder="123456789:ABCdef..." style="font-family:var(--font-mono);font-size:12px"></div>
-      <div class="field"><label>Chat ID</label><input type="text" id="tgChatId" autocomplete="off" placeholder="es. 734571285"></div>
-      <button class="btn tg full" id="tgSaveBtn" onclick="saveTelegram()"><i class="ti ti-brand-telegram"></i> Verifica e salva</button>
+      <div style="font-size:13px;font-weight:500;margin-bottom:.875rem">Configurazione in 2 passi:</div>
+      <div class="step-row"><div class="step-num">1</div><div class="step-text">Apri Telegram → cerca <a href="https://t.me/foodweeky_bot" target="_blank" style="color:#2AABEE;font-weight:500">@foodweeky_bot</a> → scrivi <code>/start</code> per attivarlo.</div></div>
+      <div class="step-row"><div class="step-num">2</div><div class="step-text">Cerca <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a> → scrivi <code>/start</code> → copia il tuo <strong>Chat ID</strong> (numero) e incollalo qui sotto.</div></div>
+      <div class="field" style="margin-top:.875rem"><label>Il tuo Chat ID</label><input type="text" id="tgChatId" autocomplete="off" placeholder="es. 734571285" style="font-family:var(--font-mono)"></div>
+      <input type="hidden" id="tgToken">
+      <button class="btn tg full" id="tgSaveBtn" onclick="saveTelegramShared()"><i class="ti ti-brand-telegram"></i> Attiva Telegram</button>
       <div id="tgSaveMsg" class="hidden" style="margin-top:.75rem"></div>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="ti ti-heart" style="color:#E24B4A"></i> Alimenti preferiti</div>
+    <div class="card-sub">Vengono usati prioritariamente nella generazione del menù. Si aggiungono automaticamente da ricerche e scansioni.</div>
+    <div id="preferitiList"><div class="no-data">Nessun alimento preferito ancora.</div></div>
+    <button class="btn danger sm full" onclick="if(confirm('Svuotare la lista preferiti?')){PREFERITI=[];savePref();renderPreferiti();}" style="margin-top:.75rem"><i class="ti ti-trash"></i> Svuota preferiti</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="ti ti-ban" style="color:#E24B4A"></i> Alimenti da evitare</div>
+    <div class="card-sub">Questi alimenti non vengono mai inseriti nei menù generati.</div>
+    <div style="display:flex;gap:8px;margin-bottom:.75rem">
+      <input type="text" id="blacklistInput" placeholder="Es: acciughe, polenta..." style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addBlacklistItem()">
+      <button class="btn primary sm" onclick="addBlacklistItem()"><i class="ti ti-plus"></i></button>
+    </div>
+    <div id="blacklistItems"><div style="font-size:13px;color:var(--color-text-tertiary);font-style:italic">Nessun alimento escluso.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="ti ti-history" style="color:#1D9E75"></i> Storico menù</div>
+    <div class="card-sub">Ultimi 5 menù generati — ricaricali in qualsiasi momento.</div>
+    <div id="storicoList"><div class="no-data">Nessun menù salvato ancora.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="ti ti-moon"></i> Aspetto</div>
+    <div class="card-sub">Scegli il tema dell'interfaccia.</div>
+    <button class="btn full" id="darkToggle" onclick="toggleDarkMode()"><i class="ti ti-moon"></i> Modalità scura</button>
   </div>
 
   <div class="card" style="background:var(--color-background-secondary)">
@@ -589,6 +696,46 @@ function updateApiKey(){}
 function deleteApiKey(){}
 function renderKeyDisplay(){}
 
+// Bot condiviso NutriPlan — token configurato dall'amministratore
+const SHARED_BOT_TOKEN = localStorage.getItem('np_shared_bot') || '';
+
+async function saveTelegramShared(){
+  const chatId = document.getElementById('tgChatId').value.trim();
+  const token = SHARED_BOT_TOKEN;
+  const msg = document.getElementById('tgSaveMsg');
+  msg.className = 'hidden';
+  if(!chatId){showToast('Inserisci il tuo Chat ID','#E24B4A');return;}
+  if(!token){
+    // Fallback: chiede il token se non configurato dall'admin
+    const t = prompt("Bot Token (chiedi all'amministratore):","");
+    if(!t) return;
+    localStorage.setItem('np_shared_bot', t);
+    location.reload();
+    return;
+  }
+  const btn = document.getElementById('tgSaveBtn');
+  btn.disabled=true; btn.innerHTML='<div class="spinner-sm"></div> Verifico...';
+  try{
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({chat_id:chatId, text:`✅ *NutriPlan attivato!*
+
+Riceverai le liste della spesa su questo chat.
+
+_${new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}_`, parse_mode:'Markdown'})
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.description||'Chat ID non valido — verifica con @userinfobot');
+    localStorage.setItem('np_tg_token', token);
+    localStorage.setItem('np_tg_chatid', chatId);
+    msg.className='success-box'; msg.innerHTML='<i class="ti ti-check"></i> Attivato! Controlla Telegram.'; msg.classList.remove('hidden');
+    setTimeout(()=>renderTgStatus(), 1200);
+  }catch(e){
+    msg.className='error-box'; msg.textContent='Errore: '+e.message; msg.classList.remove('hidden');
+  }
+  btn.disabled=false; btn.innerHTML='<i class="ti ti-brand-telegram"></i> Attiva Telegram';
+}
+
 async function saveTelegram(){
   const token=document.getElementById('tgToken').value.trim(),chatId=document.getElementById('tgChatId').value.trim();
   const msg=document.getElementById('tgSaveMsg');msg.className='hidden';
@@ -605,7 +752,7 @@ async function saveTelegram(){
   btn.disabled=false;btn.innerHTML='<i class="ti ti-brand-telegram"></i> Verifica e salva';
 }
 function resetTelegram(){if(!confirm('Rimuovere la configurazione Telegram?'))return;localStorage.removeItem('np_tg_token');localStorage.removeItem('np_tg_chatid');renderTgStatus();showToast('Configurazione rimossa');}
-function renderTgStatus(){const{token,chatId}=getTgConfig();if(token&&chatId){document.getElementById('tgConfigured').classList.remove('hidden');document.getElementById('tgSetupSteps').classList.add('hidden');document.getElementById('tgBotName').textContent=token.split(':')[0]+':*****';}else{document.getElementById('tgConfigured').classList.add('hidden');document.getElementById('tgSetupSteps').classList.remove('hidden');}}
+function renderTgStatus(){const{token,chatId}=getTgConfig();if(token&&chatId){document.getElementById('tgConfigured').classList.remove('hidden');document.getElementById('tgSetupSteps').classList.add('hidden');document.getElementById('tgBotName').textContent=chatId;}else{document.getElementById('tgConfigured').classList.add('hidden');document.getElementById('tgSetupSteps').classList.remove('hidden');}}
 
 async function sendToTelegram(){
   const{token,chatId}=getTgConfig();
@@ -630,7 +777,7 @@ async function sendToTelegram(){
 }
 
 function showToast(msg,color='#1D9E75'){const t=document.getElementById('toast');t.textContent=msg;t.style.background=color;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
-function goTo(s){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('screen-'+s).classList.add('active');document.getElementById('nav-'+s).classList.add('active');if(s==='tracking')renderTrackHistory();if(s==='impostazioni'){renderKeyDisplay();renderTgStatus();}}
+function goTo(s){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('screen-'+s).classList.add('active');document.getElementById('nav-'+s).classList.add('active');if(s==='tracking')renderTrackHistory();if(s==='impostazioni'){renderKeyDisplay();renderTgStatus();renderPreferiti();renderBlacklist();renderStorico();}}
 function addTag(e,type){if(e.key!=='Enter')return;const ids={pref:'prefIn',intol:'intolIn',allergy:'allergyIn',frigoIng:'frigoIngIn',frigoExc:'frigoExcIn'};const boxes={pref:'prefBox',intol:'intolBox',allergy:'allergyBox',frigoIng:'frigoIngBox',frigoExc:'frigoExcBox'};const inp=document.getElementById(ids[type]);const v=inp.value.trim();if(!v||S.tags[type].includes(v)){inp.value='';return;}S.tags[type].push(v);const box=document.getElementById(boxes[type]);const t=document.createElement('div');t.className='tag';t.innerHTML=v+'<span class="rx" onclick="rmTag(this,\''+type+'\',\''+v.replace(/'/g,"\\'")+'\')">×</span>';box.insertBefore(t,inp);inp.value='';}
 function rmTag(el,type,v){S.tags[type]=S.tags[type].filter(x=>x!==v);el.parentElement.remove();}
 function selAct(el){document.querySelectorAll('#actGrid .rc').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');S.cfg.activity=parseFloat(el.dataset.v);}
@@ -701,6 +848,45 @@ document.getElementById('btnBack').onclick=function(){
   nb.onclick=cfgNext;
   updateStepUI();
 };const gl={cut:'Cut — deficit calorico',maintain:'Mantenimento',bulk:'Bulk — surplus calorico'};document.getElementById('sp3').innerHTML=`<div class="card" style="text-align:center;padding:1.5rem"><div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.5rem">Calorie giornaliere target</div><div class="result-big">${target} kcal/die</div><div style="font-size:13px;color:var(--color-text-secondary);margin-top:.5rem">${gl[goal]} · regime ${diet}</div><div class="mstrip" style="margin-top:1.25rem"><div class="mc"><div class="mv">${bmr}</div><div class="ml">BMR kcal</div></div><div class="mc"><div class="mv" style="color:#1D9E75">${prot}g</div><div class="ml">Proteine</div></div><div class="mc"><div class="mv" style="color:#378ADD">${carb}g</div><div class="ml">Carboidrati</div></div><div class="mc"><div class="mv" style="color:#BA7517">${fat}g</div><div class="ml">Grassi</div></div></div></div><button class="btn primary full" onclick="goToMenu()"><i class="ti ti-salad"></i> Genera menù settimanale</button>`;}
+function rigenraGiorno(dayIndex) {
+  if(!S.menu) return;
+  const kcal = parseInt(document.getElementById('mKcal').value) || S.menu.kcal_media || 2000;
+  const prot = parseInt(document.getElementById('mProt').value) || S.menu.prot_media || Math.round(kcal*0.30/4);
+  const carb = parseInt(document.getElementById('mCarb').value) || S.menu.carb_media || Math.round(kcal*0.47/4);
+  const fat = Math.round(kcal*0.28/9);
+  const meals = document.getElementById('mMeals').value || '5';
+  const regime = document.getElementById('mDiet').value || S.cfg.diet || 'onnivoro';
+  const stagione = S.menu.stagione?.toLowerCase() || getStagioneCorrente();
+  const pastiList = PASTO_STRUTTURA[parseInt(meals)] || PASTO_STRUTTURA[5];
+  const usedThisWeek = [];
+  const usedToday = [];
+  const pasti = [];
+  let dayTot = {kcal:0,prot:0,fat:0,carb:0};
+  for(const tipo of pastiList){
+    const pct = MACRO_PASTO_PCT[tipo]||{kcal:0.1,prot:0.1,carb:0.1,fat:0.1};
+    const meal = buildMeal(tipo,Math.round(kcal*pct.kcal),Math.round(prot*pct.prot),Math.round(carb*pct.carb),Math.round(fat*pct.fat),stagione,regime,usedThisWeek,usedToday);
+    pasti.push(meal);
+    dayTot.kcal+=meal.kcal; dayTot.prot+=meal.prot; dayTot.fat+=meal.fat; dayTot.carb+=meal.carb;
+  }
+  S.menu.giorni[dayIndex] = {
+    giorno: DAY_NAMES[dayIndex],
+    kcal_totale: dayTot.kcal,
+    prot_totale: Math.round(dayTot.prot*10)/10,
+    fat_totale: Math.round(dayTot.fat*10)/10,
+    carb_totale: Math.round(dayTot.carb*10)/10,
+    pasti
+  };
+  // Ricalcola media
+  const avg = k => Math.round(S.menu.giorni.reduce((a,g)=>a+(g[k]||0),0)/7);
+  S.menu.kcal_media = avg('kcal_totale');
+  S.menu.prot_media = Math.round(avg('prot_totale')*10)/10;
+  S.menu.fat_media = Math.round(avg('fat_totale')*10)/10;
+  S.menu.carb_media = Math.round(avg('carb_totale')*10)/10;
+  const stagInfo = STAGIONI[stagione] || STAGIONI[getStagioneCorrente()];
+  renderMenu(stagInfo);
+  showToast(DAY_NAMES[dayIndex] + ' rigenerato');
+}
+
 function goToMenu(){if(S.cfg.done){document.getElementById('mKcal').value=S.tdee.target;document.getElementById('mProt').value=S.tdee.prot;document.getElementById('mCarb').value=S.tdee.carb;document.getElementById('mDiet').value=S.cfg.diet;const n=[...S.cfg.intol,...S.cfg.allergy].join(', ');if(n)document.getElementById('mNotes').value='Evitare: '+n;document.getElementById('menuFormSub').textContent='Dati importati dal configuratore — modificabili prima di generare.';}goTo('menu');}
 
 
@@ -855,6 +1041,482 @@ function recalcMenuKcal(menuData) {
   return menuData;
 }
 
+
+// ============================================================
+// LISTA PREFERITI — alimenti preferiti per il generatore menù
+// ============================================================
+let PREFERITI = JSON.parse(localStorage.getItem('np_preferiti') || '[]');
+
+function savePref(){localStorage.setItem('np_preferiti', JSON.stringify(PREFERITI));}
+
+function addIngToPreferiti(names){
+  let added = 0;
+  names.forEach(name => {
+    const key = name.toLowerCase().trim();
+    if(!PREFERITI.find(p=>p.toLowerCase()===key)){
+      PREFERITI.push(name);
+      added++;
+    }
+  });
+  savePref();
+  showToast(added > 0 ? `${added} aliment${added>1?'i':'o'} aggiunt${added>1?'i':'o'} ai preferiti ♥` : 'Già nei preferiti');
+}
+
+function addSingleToPreferiti(name){
+  const key = name.toLowerCase().trim();
+  if(!PREFERITI.find(p=>p.toLowerCase()===key)){
+    PREFERITI.push(name);
+    savePref();
+    showToast(name + ' aggiunto ai preferiti ♥');
+  } else {
+    showToast(name + ' è già nei preferiti');
+  }
+}
+
+function removeFromPreferiti(name){
+  PREFERITI = PREFERITI.filter(p=>p.toLowerCase()!==name.toLowerCase());
+  savePref();
+  renderPreferiti();
+}
+
+function renderPreferiti(){
+  const el = document.getElementById('preferitiList');
+  if(!el) return;
+  if(!PREFERITI.length){
+    el.innerHTML='<div class="no-data">Nessun alimento preferito. Clicca ♥ su un pasto del menù per aggiungere.</div>';
+    return;
+  }
+  // Group by CREA category
+  const groups = {};
+  PREFERITI.forEach(name => {
+    let cat = 'Altro';
+    const n = name.toLowerCase();
+    for(const [c, items] of Object.entries(CREA_CAT)){
+      if(items.some(i=>i.n.toLowerCase()===n || n.includes(i.n.toLowerCase().split(',')[0]))){
+        const catMap={cereali:'Cereali',carne:'Carne',pesce:'Pesce',latticini:'Latticini',legumi:'Legumi',verdure:'Verdure',frutta:'Frutta',condimenti:'Condimenti'};
+        cat=catMap[c]||'Altro'; break;
+      }
+    }
+    if(!groups[cat]) groups[cat]=[];
+    groups[cat].push(name);
+  });
+
+  el.innerHTML = Object.entries(groups).map(([cat, items])=>`
+    <div style="margin-bottom:.75rem">
+      <div style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.375rem">${cat}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${items.map(name=>`<div class="tag" style="display:flex;align-items:center;gap:5px;background:#E1F5EE;color:#0F6E56">
+          <span>${name}</span>
+          <span class="rx" onclick="removeFromPreferiti('${name.replace(/'/g,"\'")}')">×</span>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// Use preferiti in menu generation — boost foods in PREFERITI
+function pickFoodWithPref(catStr, stagione, regime, usedThisWeek, usedToday) {
+  const cats = catStr.split('|');
+  let pool = [], prefPool = [];
+  for (const cat of cats) {
+    const items = CREA_CAT[cat] || [];
+    for (const item of items) {
+      if (!item.s.includes(stagione) && item.s.length < 4) continue;
+      if (regime === 'vegetariano' && (cat === 'carne' || cat === 'pesce')) continue;
+      if (regime === 'vegano' && (cat === 'carne' || cat === 'pesce' || cat === 'latticini')) continue;
+      if (usedToday.includes(item.n)) continue;
+      // Check blacklist
+      if (BLACKLIST.some(b=>item.n.toLowerCase().includes(b.toLowerCase()) || b.toLowerCase()===item.n.toLowerCase().split(',')[0])) continue;
+      // Check if in preferiti
+      const inPref = PREFERITI.some(p=>item.n.toLowerCase().includes(p.toLowerCase()) || p.toLowerCase().includes(item.n.toLowerCase().split(',')[0]));
+      if(inPref) prefPool.push(item);
+      else pool.push(item);
+    }
+  }
+  // Prefer preferiti 70% of the time if available
+  const usePref = prefPool.length > 0 && Math.random() < 0.70;
+  const source = usePref ? prefPool : (pool.length > 0 ? pool : prefPool);
+  if(source.length === 0){
+    // Final fallback ignoring usedToday
+    for (const cat of cats) {
+      const items = (CREA_CAT[cat]||[]).filter(i=>{
+        if(regime==='vegetariano'&&(cat==='carne'||cat==='pesce'))return false;
+        if(regime==='vegano'&&(cat==='carne'||cat==='pesce'||cat==='latticini'))return false;
+        return true;
+      });
+      pool.push(...items);
+    }
+    if(!pool.length) return null;
+    const fresh = pool.filter(i=>!usedThisWeek.includes(i.n));
+    const src2 = fresh.length > 2 ? fresh : pool;
+    return src2[Math.floor(Math.random()*src2.length)];
+  }
+  const fresh = source.filter(i=>!usedThisWeek.includes(i.n));
+  return (fresh.length>0?fresh:source)[Math.floor(Math.random()*(fresh.length||source.length))];
+}
+
+// ============================================================
+// EXPORT PDF MENÙ
+// ============================================================
+function exportMenuPDF(){
+  if(!S.menu){showToast('Genera prima un menù','#E24B4A');return;}
+  const m = S.menu;
+  const stagInfo = STAGIONI[m.stagione?.toLowerCase()] || null;
+
+  let html = `<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">
+  <title>NutriPlan — Menù Settimanale</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111;background:#fff;padding:24px;font-size:12px}
+    h1{font-size:20px;font-weight:600;color:#1D9E75;margin-bottom:4px}
+    .subtitle{font-size:13px;color:#666;margin-bottom:16px}
+    .macros{display:flex;gap:12px;margin-bottom:20px}
+    .macro-box{background:#f5f5f5;border-radius:8px;padding:10px 16px;text-align:center;flex:1}
+    .macro-val{font-size:18px;font-weight:600}
+    .macro-lbl{font-size:10px;color:#666;margin-top:2px}
+    .day{margin-bottom:16px;break-inside:avoid}
+    .day-hdr{background:#E1F5EE;border-radius:6px;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+    .day-name{font-size:14px;font-weight:600;color:#0F6E56}
+    .day-kcal{font-size:12px;color:#1D9E75;font-weight:500}
+    .meal{display:flex;gap:10px;padding:5px 0;border-bottom:0.5px solid #eee}
+    .meal:last-child{border-bottom:none}
+    .meal-badge{border-radius:12px;padding:2px 8px;font-size:10px;font-weight:500;white-space:nowrap;flex-shrink:0;margin-top:1px}
+    .meal-desc{flex:1;font-size:12px;line-height:1.4}
+    .meal-kcal{font-size:11px;color:#666;white-space:nowrap}
+    .macros-row{display:flex;gap:4px;margin-top:2px}
+    .m-badge{font-size:9px;border-radius:8px;padding:1px 5px}
+    .footer{margin-top:20px;padding-top:12px;border-top:0.5px solid #eee;font-size:10px;color:#999;display:flex;justify-content:space-between}
+    @media print{body{padding:0} .no-print{display:none}}
+  </style></head><body>
+  <h1>Menù Settimanale NutriPlan</h1>
+  <div class="subtitle">${stagInfo ? stagInfo.label + ' · ' : ''}Generato il ${new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+  <div class="macros">
+    <div class="macro-box"><div class="macro-val" style="color:#1D9E75">${m.kcal_media}</div><div class="macro-lbl">kcal/die</div></div>
+    <div class="macro-box"><div class="macro-val">${m.prot_media}g</div><div class="macro-lbl">proteine</div></div>
+    <div class="macro-box"><div class="macro-val" style="color:#185FA5">${m.carb_media}g</div><div class="macro-lbl">carboidrati</div></div>
+    <div class="macro-box"><div class="macro-val" style="color:#633806">${m.fat_media}g</div><div class="macro-lbl">grassi</div></div>
+  </div>`;
+
+  const badgeColors = {col:'#E1F5EE',pra:'#E6F1FB',cen:'#EEEDFE',spu:'#FAEEDA'};
+  const badgeText = {col:'#0F6E56',pra:'#185FA5',cen:'#3C3489',spu:'#633806'};
+
+  m.giorni.forEach((g,i)=>{
+    html += `<div class="day"><div class="day-hdr"><span class="day-name">${DAY_NAMES[i]}</span><span class="day-kcal">${g.kcal_totale} kcal`;
+    if(g.prot_totale) html += ` · P${g.prot_totale}g C${g.carb_totale}g G${g.fat_totale}g`;
+    html += `</span></div>`;
+    g.pasti.forEach(p=>{
+      const t=p.tipo.toLowerCase();
+      const bc=t.includes('colazione')?'col':t.includes('pranzo')?'pra':t.includes('cena')?'cen':'spu';
+      html+=`<div class="meal">
+        <span class="meal-badge" style="background:${badgeColors[bc]};color:${badgeText[bc]}">${p.tipo}</span>
+        <div class="meal-desc">${p.descrizione}
+          ${p.prot!==undefined?`<div class="macros-row"><span class="m-badge" style="background:#FAECE7;color:#712B13">P ${p.prot}g</span><span class="m-badge" style="background:#E6F1FB;color:#185FA5">C ${p.carb}g</span><span class="m-badge" style="background:#FAEEDA;color:#633806">G ${p.fat}g</span></div>`:''}
+        </div>
+        <span class="meal-kcal">${p.kcal} kcal</span>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `<div class="footer"><span>NutriPlan · Database CREA (ex-INRAN) · Valori calcolati</span><span>⚠️ Non sostituisce il parere di un nutrizionista</span></div></body></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>w.print(), 500);
+}
+
+// ============================================================
+// QR CODE E LINK MENÙ
+// ============================================================
+function showMenuQR(){
+  if(!S.menu){showToast('Genera prima un menù','#E24B4A');return;}
+  document.getElementById('menuQRPanel').classList.remove('hidden');
+
+  // Encode menu as compact JSON in base64 for URL
+  const compact = {
+    k: S.menu.kcal_media,
+    p: S.menu.prot_media,
+    c: S.menu.carb_media,
+    f: S.menu.fat_media,
+    s: S.menu.stagione,
+    g: S.menu.giorni.map(g=>({
+      k: g.kcal_totale,
+      p: g.pasti.map(p=>({t:p.tipo,d:p.descrizione,k:p.kcal}))
+    }))
+  };
+  const encoded = btoa(encodeURIComponent(JSON.stringify(compact)));
+  const url = window.location.href.split('?')[0] + '?menu=' + encoded.slice(0,800); // limit URL length
+
+  // Generate QR code using free API
+  const qrEl = document.getElementById('menuQRCode');
+  qrEl.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(url)}" width="160" height="160" alt="QR Code menù">`;
+
+  document.getElementById('menuLinkBox').textContent = url.length > 200 ? 'Link generato (usa "Copia link" per condividere il menù completo)' : url;
+}
+
+function copyMenuLink(){
+  if(!S.menu){return;}
+  const compact = {
+    k: S.menu.kcal_media, p: S.menu.prot_media, c: S.menu.carb_media, f: S.menu.fat_media,
+    s: S.menu.stagione,
+    g: S.menu.giorni.map(g=>({k:g.kcal_totale, p:g.pasti.map(p=>({t:p.tipo,d:p.descrizione,k:p.kcal}))}))
+  };
+  const encoded = btoa(encodeURIComponent(JSON.stringify(compact)));
+  const url = window.location.href.split('?')[0] + '?menu=' + encoded;
+  navigator.clipboard.writeText(url).then(()=>showToast('Link copiato! ✓')).catch(()=>showToast('Copia manuale: ' + url.slice(0,60)+'...'));
+}
+
+// Auto-load menu from URL on start
+function checkMenuFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  const menuParam = params.get('menu');
+  if(!menuParam) return;
+  try{
+    const decoded = JSON.parse(decodeURIComponent(atob(menuParam)));
+    const menu = {
+      kcal_media: decoded.k, prot_media: decoded.p, carb_media: decoded.c, fat_media: decoded.f,
+      stagione: decoded.s,
+      giorni: decoded.g.map((g,i)=>({
+        giorno: DAY_NAMES[i]||'Giorno '+(i+1),
+        kcal_totale: g.k,
+        pasti: g.p.map(p=>({tipo:p.t, descrizione:p.d, kcal:p.k}))
+      })),
+      source: 'shared'
+    };
+    S.menu = recalcMenuKcal(menu);
+    const stagInfo = STAGIONI[decoded.s?.toLowerCase()] || STAGIONI[getStagioneCorrente()];
+    goTo('menu');
+    renderMenu(stagInfo);
+    showToast('Menù condiviso caricato!');
+  }catch(e){console.log('URL menu parse error', e);}
+}
+
+// ============================================================
+// IDRATAZIONE
+// ============================================================
+let idroToday = parseInt(localStorage.getItem('np_idro_' + new Date().toISOString().split('T')[0]) || '0');
+
+function calcIdroTarget(){
+  const w = S.cfg.weight || 70;
+  const act = S.cfg.activity || 1.2;
+  const goal = S.cfg.goal || 'maintain';
+  let base = w * 35; // 35ml/kg base
+  if(act >= 1.55) base += 500;
+  if(act >= 1.725) base += 500;
+  if(goal === 'cut') base += 200;
+  return Math.round(base / 100) * 100; // round to 100ml
+}
+
+function renderIdro(){
+  const target = calcIdroTarget();
+  const el = document.getElementById('idroResult');
+  if(el){
+    const pct = Math.min(100, Math.round(idroToday/target*100));
+    const tips = [];
+    if(idroToday < target*0.3) tips.push("Inizia la giornata con un bicchiere d'acqua appena sveglio.");
+    if(S.cfg.activity >= 1.55) tips.push("Con il tuo livello di attività, idratati anche durante l'allenamento.");
+    if(S.cfg.goal === 'cut') tips.push("Bere più acqua aiuta il metabolismo e riduce la fame in fase di cut.");
+    tips.push("Distribuisci l'assunzione durante tutta la giornata — 200-300ml ogni ora.");
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem">
+        <div class="mc"><div class="mv" style="color:#2AABEE">${target}ml</div><div class="ml">target/die</div></div>
+        <div class="mc"><div class="mv">${Math.round(target/250)}</div><div class="ml">bicchieri</div></div>
+        <div class="mc"><div class="mv" style="color:#1D9E75">${S.cfg.weight||'—'} kg</div><div class="ml">peso base</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--color-text-secondary);background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem;line-height:1.6">
+        ${tips.map(t=>`<div style="display:flex;gap:6px;margin-bottom:3px"><i class="ti ti-droplet" style="color:#2AABEE;font-size:12px;flex-shrink:0;margin-top:2px"></i>${t}</div>`).join('')}
+      </div>`;
+  }
+  updateIdroDisplay();
+}
+
+function updateIdroDisplay(){
+  const target = calcIdroTarget();
+  const pct = Math.min(100, Math.round(idroToday/target*100));
+  const lbl = document.getElementById('idroTodayLbl');
+  const fill = document.getElementById('idroTodayFill');
+  if(lbl) lbl.textContent = idroToday + ' ml / ' + target + ' ml (' + pct + '%)';
+  if(fill) fill.style.width = pct + '%';
+}
+
+function addIdro(ml){
+  idroToday += ml;
+  const key = 'np_idro_' + new Date().toISOString().split('T')[0];
+  localStorage.setItem(key, idroToday);
+  updateIdroDisplay();
+  // Update log
+  const log = document.getElementById('idroLog');
+  if(log){
+    const now = new Date().toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+    log.innerHTML = `<span style="color:#2AABEE;font-weight:500">+${ml}ml</span> alle ${now} · totale ${idroToday}ml` + (log.innerHTML ? ' · ' + log.innerHTML : '');
+  }
+  showToast(`+${ml}ml 💧 — totale ${idroToday}ml oggi`);
+}
+
+function resetIdroDay(){
+  idroToday = 0;
+  const key = 'np_idro_' + new Date().toISOString().split('T')[0];
+  localStorage.setItem(key, 0);
+  updateIdroDisplay();
+  const log = document.getElementById('idroLog');
+  if(log) log.innerHTML = '';
+}
+
+// ============================================================
+// ONBOARDING
+// ============================================================
+let onbStep = 0;
+const ONB_TOTAL = 4;
+
+function initOnboarding(){
+  const seen = localStorage.getItem('np_onboarded');
+  if(!seen){
+    document.getElementById('onboarding').classList.remove('hidden');
+    document.querySelector('.app').style.display = 'none';
+  }
+}
+
+function onbNextSlide(){
+  document.getElementById('onb'+onbStep).classList.add('hidden');
+  document.getElementById('dot'+onbStep).style.background = 'var(--color-border-secondary)';
+  onbStep++;
+  if(onbStep >= ONB_TOTAL){
+    finishOnboarding();
+    return;
+  }
+  document.getElementById('onb'+onbStep).classList.remove('hidden');
+  document.getElementById('dot'+onbStep).style.background = '#1D9E75';
+  if(onbStep === ONB_TOTAL-1){
+    document.getElementById('onbNext').innerHTML = 'Inizia <i class="ti ti-check"></i>';
+  }
+}
+
+function finishOnboarding(){
+  localStorage.setItem('np_onboarded','1');
+  document.getElementById('onboarding').classList.add('hidden');
+  document.querySelector('.app').style.display = 'block';
+}
+
+// ============================================================
+// DARK MODE
+// ============================================================
+function initDarkMode(){
+  const saved = localStorage.getItem('np_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  const btn = document.getElementById('darkToggle');
+  if(btn) btn.innerHTML = saved==='dark'
+    ? '<i class="ti ti-sun"></i> Modalità chiara'
+    : '<i class="ti ti-moon"></i> Modalità scura';
+}
+
+function toggleDarkMode(){
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('np_theme', next);
+  const btn = document.getElementById('darkToggle');
+  if(btn) btn.innerHTML = next==='dark'
+    ? '<i class="ti ti-sun"></i> Modalità chiara'
+    : '<i class="ti ti-moon"></i> Modalità scura';
+}
+
+// ============================================================
+// STORICO MENÙ
+// ============================================================
+let STORICO_MENU = JSON.parse(localStorage.getItem('np_storico') || '[]');
+
+function saveMenuToStorico(menu) {
+  const entry = {
+    id: Date.now(),
+    data: new Date().toLocaleDateString('it-IT', {day:'numeric', month:'long', year:'numeric'}),
+    kcal_media: menu.kcal_media,
+    stagione: menu.stagione,
+    menu: JSON.parse(JSON.stringify(menu))
+  };
+  STORICO_MENU.unshift(entry);
+  if(STORICO_MENU.length > 5) STORICO_MENU = STORICO_MENU.slice(0, 5);
+  localStorage.setItem('np_storico', JSON.stringify(STORICO_MENU));
+}
+
+function renderStorico() {
+  const el = document.getElementById('storicoList');
+  if(!el) return;
+  if(!STORICO_MENU.length) {
+    el.innerHTML = '<div class="no-data">Nessun menù salvato. Genera il primo menù per vederlo qui.</div>';
+    return;
+  }
+  el.innerHTML = STORICO_MENU.map(e => `
+    <div style="display:flex;align-items:center;gap:10px;padding:.625rem 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500">${e.data}</div>
+        <div style="font-size:11px;color:var(--color-text-secondary)">${e.kcal_media} kcal/die · ${e.stagione||'Stagione variabile'}</div>
+      </div>
+      <button class="btn sm" onclick="loadMenuFromStorico(${e.id})"><i class="ti ti-refresh"></i> Ricarica</button>
+      <button class="btn sm danger" onclick="deleteFromStorico(${e.id})"><i class="ti ti-trash"></i></button>
+    </div>`).join('');
+}
+
+function loadMenuFromStorico(id) {
+  const entry = STORICO_MENU.find(e => e.id === id);
+  if(!entry) return;
+  S.menu = recalcMenuKcal(entry.menu);
+  const stagInfo = STAGIONI[entry.menu.stagione?.toLowerCase()] || STAGIONI[getStagioneCorrente()];
+  renderMenu(stagInfo);
+  goTo('menu');
+  showToast('Menù del ' + entry.data + ' ricaricato');
+}
+
+function deleteFromStorico(id) {
+  STORICO_MENU = STORICO_MENU.filter(e => e.id !== id);
+  localStorage.setItem('np_storico', JSON.stringify(STORICO_MENU));
+  renderStorico();
+}
+
+// ============================================================
+// BLACKLIST — alimenti da escludere sempre
+// ============================================================
+let BLACKLIST = JSON.parse(localStorage.getItem('np_blacklist') || '[]');
+
+function saveBlacklist(){localStorage.setItem('np_blacklist', JSON.stringify(BLACKLIST));}
+
+function addBlacklistItem(){
+  const inp = document.getElementById('blacklistInput');
+  const val = inp?.value.trim();
+  if(!val) return;
+  addToBlacklist(val);
+  inp.value = '';
+  renderBlacklist();
+  showToast(val + ' aggiunto alla blacklist');
+}
+
+function addToBlacklist(name) {
+  const key = name.toLowerCase().trim();
+  if(!BLACKLIST.find(b=>b.toLowerCase()===key)){
+    BLACKLIST.push(name);
+    saveBlacklist();
+  }
+}
+
+function removeFromBlacklist(name) {
+  BLACKLIST = BLACKLIST.filter(b=>b.toLowerCase()!==name.toLowerCase());
+  saveBlacklist();
+  renderBlacklist();
+}
+
+function renderBlacklist() {
+  const el = document.getElementById('blacklistItems');
+  if(!el) return;
+  if(!BLACKLIST.length){
+    el.innerHTML = '<div style="font-size:13px;color:var(--color-text-tertiary);font-style:italic">Nessun alimento escluso.</div>';
+    return;
+  }
+  el.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:6px">${BLACKLIST.map(name=>`
+    <div style="display:flex;align-items:center;gap:5px;background:#FAECE7;color:#712B13;border-radius:20px;padding:3px 10px;font-size:12px">
+      <span>${name}</span>
+      <span style="cursor:pointer;opacity:.7;font-size:12px" onclick="removeFromBlacklist('${name.replace(/'/g,"\'")}')" >×</span>
+    </div>`).join('')}</div>`;
+}
 
 // ============================================================
 // CALCOLO MACRO PASTO
@@ -1076,7 +1738,7 @@ function buildMeal(tipo, targetKcal, targetProt, targetCarb, targetFat, stagione
   let totals = {kcal:0, prot:0, fat:0, carb:0};
 
   for (const slot of template) {
-    const food = pickFood(slot.cat, stagione, regime, usedThisWeek, usedToday);
+    const food = pickFoodWithPref(slot.cat, stagione, regime, usedThisWeek, usedToday);
     if (!food) continue;
 
     // Calculate grams: try to respect min/max range
@@ -1212,6 +1874,7 @@ function generateMenuLocal(){
     try{
       const stagInfo=STAGIONI[stagione]||STAGIONI['estate'];
       S.menu=generateMenuAlgo(kcal,prot,carb,fat,meals,regime,stagione);
+      saveMenuToStorico(S.menu);
       document.getElementById('menuLoading').classList.add('hidden');
       renderMenu(stagInfo);
       showToast('Menù generato dal database CREA — zero token AI');
@@ -1284,7 +1947,11 @@ function renderMenu(stagInfo){
   document.getElementById('menuSeasonInfo').innerHTML=stagInfo?`<div style="display:flex;align-items:center;gap:8px;background:#E1F5EE;border-radius:var(--border-radius-md);padding:.625rem 1rem;font-size:12px;color:#0F6E56"><i class="ti ${stagInfo.icon}"></i><span><strong>${stagInfo.label}</strong> — menù costruito con prodotti di stagione italiani</span></div>`:'';
   const db=document.getElementById('menuDays');db.innerHTML='';
   m.giorni.forEach((g,i)=>{
-    const mh=g.pasti.map(p=>{const t=p.tipo.toLowerCase();const bc=t.includes('colazione')?'col':t.includes('pranzo')?'pra':t.includes('cena')?'cen':'spu';const macroRow=p.kcal_verified&&p.prot!==undefined?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:3px"><span style="font-size:10px;background:#FAECE7;color:#712B13;border-radius:10px;padding:1px 6px">P ${p.prot}g</span><span style="font-size:10px;background:#E6F1FB;color:#185FA5;border-radius:10px;padding:1px 6px">C ${p.carb}g</span><span style="font-size:10px;background:#FAEEDA;color:#633806;border-radius:10px;padding:1px 6px">G ${p.fat}g</span><span style="font-size:10px;background:#E1F5EE;color:#0F6E56;border-radius:10px;padding:1px 5px">✓ CREA</span></div>`:'';return`<div class="meal-row" style="flex-wrap:wrap"><span class="mbadge ${bc}">${p.tipo}</span><div style="flex:1;min-width:0"><div style="font-size:13px">${p.descrizione}</div>${macroRow}</div><span style="font-size:12px;color:var(--color-text-secondary);white-space:nowrap;margin-left:8px">${p.kcal} kcal</span></div>`;}).join('');
+    const mh=g.pasti.map(p=>{const t=p.tipo.toLowerCase();const bc=t.includes('colazione')?'col':t.includes('pranzo')?'pra':t.includes('cena')?'cen':'spu';const macroRow=p.kcal_verified&&p.prot!==undefined?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:3px"><span style="font-size:10px;background:#FAECE7;color:#712B13;border-radius:10px;padding:1px 6px">P ${p.prot}g</span><span style="font-size:10px;background:#E6F1FB;color:#185FA5;border-radius:10px;padding:1px 6px">C ${p.carb}g</span><span style="font-size:10px;background:#FAEEDA;color:#633806;border-radius:10px;padding:1px 6px">G ${p.fat}g</span><span style="font-size:10px;background:#E1F5EE;color:#0F6E56;border-radius:10px;padding:1px 5px">✓ CREA</span></div>`:'';
+// Extract ingredient names from descrizione for preferiti
+const ingNames = p.ingredienti ? p.ingredienti.map(i=>i.nome) : p.descrizione.split('+').map(s=>s.replace(/\d+g?/gi,'').trim()).filter(Boolean);
+const prefBtn=`<button onclick="addIngToPreferiti(${JSON.stringify(ingNames).replace(/'/g,'&#39;')})" title="Aggiungi ingredienti ai preferiti" style="border:none;background:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px 4px;font-size:14px;flex-shrink:0" onmouseover="this.style.color='#1D9E75'" onmouseout="this.style.color='var(--color-text-tertiary)'"><i class="ti ti-heart"></i></button>`;
+return`<div class="meal-row" style="flex-wrap:wrap"><span class="mbadge ${bc}">${p.tipo}</span><div style="flex:1;min-width:0"><div style="font-size:13px">${p.descrizione}</div>${macroRow}</div><span style="font-size:12px;color:var(--color-text-secondary);white-space:nowrap;margin-left:4px">${p.kcal} kcal</span>${prefBtn}</div>`;}).join('');
     const div=document.createElement('div');div.className='day-block';
     const dayMacros = g.prot_totale !== undefined
   ? `<div style="display:flex;gap:8px;flex-wrap:wrap;padding:.375rem 1rem;background:var(--color-background-secondary);border-top:0.5px solid var(--color-border-tertiary)">
@@ -1293,7 +1960,7 @@ function renderMenu(stagInfo){
       <span style="font-size:11px;color:#185FA5">C <strong>${g.carb_totale}g</strong></span>
       <span style="font-size:11px;color:#633806">G <strong>${g.fat_totale}g</strong></span>
     </div>` : '';
-div.innerHTML=`<div class="day-hdr" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'"><span style="font-size:13px;font-weight:500">${DAY_NAMES[i]}</span><span style="font-size:12px;color:#1D9E75;font-weight:500">${g.kcal_totale} kcal</span></div>${dayMacros}<div style="padding:0 1rem;display:block">${mh}</div>`;
+div.innerHTML=`<div class="day-hdr" onclick="this.nextElementSibling.nextElementSibling.style.display=this.nextElementSibling.nextElementSibling.style.display==='none'?'block':'none'"><span style="font-size:13px;font-weight:500">${DAY_NAMES[i]}</span><div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:#1D9E75;font-weight:500">${g.kcal_totale} kcal</span><button onclick="event.stopPropagation();rigenraGiorno(${i})" style="border:none;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-sm);padding:2px 7px;font-size:11px;cursor:pointer;color:var(--color-text-secondary)" title="Rigenera questo giorno"><i class="ti ti-refresh" style="font-size:11px"></i></button></div></div>${dayMacros}<div style="padding:0 1rem;display:block">${mh}</div>`;
     db.appendChild(div);
   });
   document.getElementById('menuResult').classList.remove('hidden');
@@ -1444,7 +2111,7 @@ function renderFrigo(data){
 }
 function resetFrigo(){document.getElementById('frigoResult').classList.add('hidden');document.getElementById('frigoForm').classList.remove('hidden');}
 
-function trackTab(tab){['ins','and','obj'].forEach(t=>{const btn=document.getElementById('tb-'+t),panel=document.getElementById('tp-'+t),active=t===tab;btn.style.background=active?'#1D9E75':'transparent';btn.style.color=active?'#fff':'var(--color-text-secondary)';panel.style.display=active?'block':'none';});if(tab==='and')renderTrackCharts();if(tab==='obj')renderGoalProgress();}
+function trackTab(tab){['ins','and','obj','kcal','idro'].forEach(t=>{const btn=document.getElementById('tb-'+t),panel=document.getElementById('tp-'+t),active=t===tab;if(btn){btn.style.background=active?'#1D9E75':'transparent';btn.style.color=active?'#fff':'var(--color-text-secondary)';}if(panel)panel.style.display=active?'block':'none';});if(tab==='and')renderTrackCharts();if(tab==='obj')renderGoalProgress();if(tab==='idro')renderIdro();}
 document.getElementById('tDate').value=new Date().toISOString().split('T')[0];
 function saveEntry(){const date=document.getElementById('tDate').value,weight=parseFloat(document.getElementById('tWeight').value);const err=document.getElementById('tErr'),suc=document.getElementById('tSaveMsg');err.classList.add('hidden');suc.classList.add('hidden');if(!date||isNaN(weight)){err.textContent='Data e peso obbligatori.';err.classList.remove('hidden');return;}const entry={date,weight,waist:parseFloat(document.getElementById('tWaist').value)||null,hips:parseFloat(document.getElementById('tHips').value)||null,bf:parseFloat(document.getElementById('tBf').value)||null,note:document.getElementById('tNote').value.trim()};S.trackEntries=S.trackEntries.filter(e=>e.date!==date);S.trackEntries.push(entry);S.trackEntries.sort((a,b)=>a.date.localeCompare(b.date));localStorage.setItem('np_entries',JSON.stringify(S.trackEntries));suc.classList.remove('hidden');setTimeout(()=>suc.classList.add('hidden'),2500);['tWeight','tWaist','tHips','tBf','tNote'].forEach(id=>document.getElementById(id).value='');renderTrackHistory();}
 function delEntry(date){S.trackEntries=S.trackEntries.filter(e=>e.date!==date);localStorage.setItem('np_entries',JSON.stringify(S.trackEntries));renderTrackHistory();}
@@ -2043,7 +2710,9 @@ async function searchEanForPref(){
     const n=d.product.nutriments||{};
     const kcal=Math.round(n['energy-kcal_100g']||0);
     res.innerHTML=`<span style="color:#0F6E56;font-weight:500">${name}</span> — ${kcal} kcal/100g`;
-    // Auto-add to preferred foods
+    // Auto-add to preferred foods and preferiti list
+    addSingleToPreferiti(name);
+    addUserFood(name, kcal, Math.round((d.product.nutriments?.proteins_100g||0)*10)/10, Math.round((d.product.nutriments?.fat_100g||0)*10)/10, Math.round((d.product.nutriments?.carbohydrates_100g||0)*10)/10, 0);
     if(name&&!S.tags.pref.includes(name)){
       S.tags.pref.push(name);
       const box=document.getElementById('prefBox');
@@ -2061,7 +2730,12 @@ async function searchEanForPref(){
 
 
 // Init app directly — no API key needed
-renderTrackHistory();renderTgStatus();initSeasonBadge();
+renderTrackHistory();renderTgStatus();initSeasonBadge();initDarkMode();checkMenuFromURL();initOnboarding();
+
+// Register Service Worker for PWA offline support
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
 </script>
 </body>
 </html>
