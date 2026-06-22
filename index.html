@@ -396,11 +396,15 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     <div class="card-title"><i class="ti ti-sparkles"></i> Genera menù settimanale</div>
     <div class="card-sub" id="menuFormSub">Configura prima i tuoi dati nel tab Configura, oppure inserisci manualmente.</div>
     <div id="seasonBadge" class="season-badge"><i class="ti ti-leaf"></i> <span id="seasonText"></span></div>
-    <div class="g3">
-      <div class="field"><label>Calorie/die</label><input type="number" id="mKcal" autocomplete="off" placeholder="es. 2200"></div>
+    <div class="g2">
+      <div class="field"><label>Calorie/die</label><input type="number" id="mKcal" autocomplete="off" placeholder="es. 2200" oninput="updateMacroHints()"></div>
       <div class="field"><label>Proteine (g)</label><input type="number" id="mProt" autocomplete="off" placeholder="es. 160"></div>
-      <div class="field"><label>Carboidrati (g)</label><input type="number" id="mCarb" autocomplete="off" placeholder="es. 240"></div>
     </div>
+    <div class="g2">
+      <div class="field"><label>Carboidrati (g)</label><input type="number" id="mCarb" autocomplete="off" placeholder="es. 240"></div>
+      <div class="field"><label>Grassi (g)</label><input type="number" id="mFat" autocomplete="off" placeholder="es. 55"></div>
+    </div>
+    <div id="macroHintBar" style="display:none;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.5rem .875rem;margin-bottom:.5rem;font-size:12px;color:var(--color-text-secondary)"></div>
     <div class="g2">
       <div class="field"><label>Regime</label><select id="mDiet"><option value="onnivoro">Onnivoro</option><option value="vegetariano">Vegetariano</option><option value="vegano">Vegano</option></select></div>
       <div class="field"><label>Pasti/giorno</label><select id="mMeals"><option value="3">3 pasti</option><option value="4" selected>3 + 1 spuntino</option><option value="5">3 + 2 spuntini</option></select></div>
@@ -427,9 +431,32 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     <div id="menuDays"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:.75rem">
       <button class="btn primary" onclick="sendToSpesa()"><i class="ti ti-shopping-cart"></i> Genera lista spesa</button>
-      <button class="btn" onclick="exportMenuPDF()"><i class="ti ti-file-type-pdf"></i> Esporta PDF</button>
-      <button class="btn" onclick="showMenuQR()"><i class="ti ti-qrcode"></i> QR / Link</button>
+      <button class="btn" onclick="toggleMenuEdit()"><i class="ti ti-adjustments"></i> Modifica parametri</button>
+      <button class="btn" onclick="exportMenuPDF()"><i class="ti ti-file-type-pdf"></i> PDF</button>
+      <button class="btn" onclick="showMenuQR()"><i class="ti ti-qrcode"></i> QR</button>
       <button class="btn" onclick="resetMenu()"><i class="ti ti-refresh"></i> Rigenera</button>
+    </div>
+
+    <!-- Pannello modifica parametri menù -->
+    <div id="menuEditPanel" class="hidden" style="margin-top:.875rem;background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:1rem">
+      <div style="font-size:13px;font-weight:500;margin-bottom:.75rem"><i class="ti ti-adjustments" style="color:#1D9E75"></i> Modifica parametri e rigenera</div>
+      <div class="g2">
+        <div class="field"><label>Calorie/die</label><input type="number" id="editKcal" autocomplete="off" oninput="updateEditHints()"></div>
+        <div class="field"><label>Proteine (g)</label><input type="number" id="editProt" autocomplete="off"></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Carboidrati (g)</label><input type="number" id="editCarb" autocomplete="off"></div>
+        <div class="field"><label>Grassi (g)</label><input type="number" id="editFat" autocomplete="off"></div>
+      </div>
+      <div id="editHintBar" style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.75rem;padding:.375rem .625rem;background:var(--color-background-primary);border-radius:var(--border-radius-sm)"></div>
+      <div class="g2">
+        <div class="field"><label>Regime</label><select id="editDiet"><option value="onnivoro">Onnivoro</option><option value="vegetariano">Vegetariano</option><option value="vegano">Vegano</option></select></div>
+        <div class="field"><label>Pasti/giorno</label><select id="editMeals"><option value="3">3 pasti</option><option value="4">3 + 1 spuntino</option><option value="5">3 + 2 spuntini</option></select></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn primary full" onclick="applyMenuEdit()"><i class="ti ti-refresh"></i> Applica e rigenera</button>
+        <button class="btn" onclick="document.getElementById('menuEditPanel').classList.add('hidden')"><i class="ti ti-x"></i></button>
+      </div>
     </div>
     <div id="menuQRPanel" class="hidden" style="margin-top:.875rem;background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:1rem;text-align:center">
       <div style="font-size:13px;font-weight:500;margin-bottom:.75rem">Condividi il menù</div>
@@ -892,6 +919,8 @@ function goToMenu(){
     document.getElementById('mKcal').value=S.tdee.target;
     document.getElementById('mProt').value=S.tdee.prot;
     document.getElementById('mCarb').value=S.tdee.carb;
+    if(document.getElementById('mFat')) document.getElementById('mFat').value=S.tdee.fat;
+    updateMacroHints();
     document.getElementById('mDiet').value=S.cfg.diet;
     const n=[...S.cfg.intol,...S.cfg.allergy].join(', ');
     if(n)document.getElementById('mNotes').value='Evitare: '+n;
@@ -1514,6 +1543,101 @@ function deleteFromStorico(id) {
 }
 
 // ============================================================
+// MODIFICA PARAMETRI MENÙ
+// ============================================================
+function updateMacroHints(){
+  const kcal = parseInt(document.getElementById('mKcal').value) || 0;
+  const bar = document.getElementById('macroHintBar');
+  if(!kcal || kcal < 800){ bar.style.display='none'; return; }
+  const sugProt = Math.round(kcal*0.30/4);
+  const sugCarb = Math.round(kcal*0.47/4);
+  const sugFat  = Math.round(kcal*0.28/9);
+  bar.style.display = 'block';
+  bar.innerHTML = `Suggeriti: <strong>${sugProt}g</strong> prot · <strong>${sugCarb}g</strong> carb · <strong>${sugFat}g</strong> grassi
+    <button class="btn sm" onclick="applyMacroSuggestions(${sugProt},${sugCarb},${sugFat})" style="margin-left:8px;padding:2px 8px;font-size:11px">Applica</button>`;
+}
+
+function applyMacroSuggestions(p,c,f){
+  document.getElementById('mProt').value = p;
+  document.getElementById('mCarb').value = c;
+  if(document.getElementById('mFat')) document.getElementById('mFat').value = f;
+}
+
+function toggleMenuEdit(){
+  const panel = document.getElementById('menuEditPanel');
+  panel.classList.toggle('hidden');
+  if(!panel.classList.contains('hidden') && S.menu){
+    // Pre-popola con i valori attuali del menù
+    document.getElementById('editKcal').value = S.menu.kcal_media || '';
+    document.getElementById('editProt').value = S.menu.prot_media || '';
+    document.getElementById('editCarb').value = S.menu.carb_media || '';
+    document.getElementById('editFat').value  = S.menu.fat_media  || '';
+    // Regime e pasti attuali
+    const curDiet = document.getElementById('mDiet')?.value || 'onnivoro';
+    const curMeals = document.getElementById('mMeals')?.value || '5';
+    document.getElementById('editDiet').value  = curDiet;
+    document.getElementById('editMeals').value = curMeals;
+    updateEditHints();
+  }
+}
+
+function updateEditHints(){
+  const kcal = parseInt(document.getElementById('editKcal').value) || 0;
+  const bar = document.getElementById('editHintBar');
+  if(!kcal){ bar.innerHTML = ''; return; }
+  const sugProt = Math.round(kcal*0.30/4);
+  const sugCarb = Math.round(kcal*0.47/4);
+  const sugFat  = Math.round(kcal*0.28/9);
+  const curProt = parseInt(document.getElementById('editProt').value) || 0;
+  const curCarb = parseInt(document.getElementById('editCarb').value) || 0;
+  const curFat  = parseInt(document.getElementById('editFat').value)  || 0;
+  const totKcal = curProt*4 + curCarb*4 + curFat*9;
+  const diff = totKcal - kcal;
+  const diffColor = Math.abs(diff) < 50 ? '#1D9E75' : Math.abs(diff) < 150 ? '#BA7517' : '#E24B4A';
+  bar.innerHTML = `Suggeriti: ${sugProt}g prot · ${sugCarb}g carb · ${sugFat}g grassi
+    <button onclick="document.getElementById('editProt').value=${sugProt};document.getElementById('editCarb').value=${sugCarb};document.getElementById('editFat').value=${sugFat};updateEditHints()" style="border:none;background:none;color:#1D9E75;cursor:pointer;font-size:11px;font-weight:500;margin-left:6px">↺ Applica suggeriti</button>
+    ${totKcal > 0 ? `<span style="margin-left:8px;color:${diffColor};font-weight:500">${diff >= 0 ? '+' : ''}${diff} kcal da macro</span>` : ''}`;
+}
+
+function applyMenuEdit(){
+  const kcal  = parseInt(document.getElementById('editKcal').value) || S.menu?.kcal_media || 2000;
+  const prot  = parseInt(document.getElementById('editProt').value) || Math.round(kcal*0.30/4);
+  const carb  = parseInt(document.getElementById('editCarb').value) || Math.round(kcal*0.47/4);
+  const fat   = parseInt(document.getElementById('editFat').value)  || Math.round(kcal*0.28/9);
+  const meals = document.getElementById('editMeals').value || '5';
+  const regime= document.getElementById('editDiet').value  || 'onnivoro';
+  const stagione = S.menu?.stagione?.toLowerCase() || getStagioneCorrente();
+
+  // Aggiorna anche il form principale
+  if(document.getElementById('mKcal'))  document.getElementById('mKcal').value  = kcal;
+  if(document.getElementById('mProt'))  document.getElementById('mProt').value  = prot;
+  if(document.getElementById('mCarb'))  document.getElementById('mCarb').value  = carb;
+  if(document.getElementById('mFat'))   document.getElementById('mFat').value   = fat;
+  if(document.getElementById('mMeals')) document.getElementById('mMeals').value = meals;
+  if(document.getElementById('mDiet'))  document.getElementById('mDiet').value  = regime;
+
+  document.getElementById('menuEditPanel').classList.add('hidden');
+  document.getElementById('menuResult').classList.add('hidden');
+  document.getElementById('menuLoading').classList.remove('hidden');
+  document.getElementById('menuLoadMsg').textContent = 'Rigenero il menù con i nuovi parametri...';
+
+  setTimeout(()=>{
+    try{
+      const stagInfo = STAGIONI[stagione] || STAGIONI[getStagioneCorrente()];
+      S.menu = generateMenuAlgo(kcal, prot, carb, fat, meals, regime, stagione);
+      saveMenuToStorico(S.menu);
+      document.getElementById('menuLoading').classList.add('hidden');
+      renderMenu(stagInfo);
+      showToast('Menù rigenerato con i nuovi parametri');
+    }catch(e){
+      document.getElementById('menuLoading').classList.add('hidden');
+      document.getElementById('menuResult').classList.remove('hidden');
+      showToast('Errore: '+e.message, '#E24B4A');
+    }
+  }, 300);
+}
+
+// ============================================================
 // BLACKLIST — alimenti da escludere sempre
 // ============================================================
 let BLACKLIST = JSON.parse(localStorage.getItem('np_blacklist') || '[]');
@@ -1867,7 +1991,7 @@ function buildMeal(tipo, targetKcal, targetProt, targetCarb, targetFat, stagione
   if(targetKcal > 0 && ingredienti.length > 0){
     const currentKcal = ingredienti.reduce((s,i)=>s+i.kcal, 0);
     const ratio = Math.min(2.0, Math.max(0.45, targetKcal / currentKcal));
-    if(Math.abs(ratio - 1) > 0.08){
+    if(Math.abs(ratio - 1) > 0.05){
       totals = {kcal:0, prot:0, fat:0, carb:0};
       ingredienti = ingredienti.map(ing => {
         const g = Math.max(10, Math.round(ing.grams * ratio / 5) * 5);
