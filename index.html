@@ -887,7 +887,18 @@ function rigenraGiorno(dayIndex) {
   showToast(DAY_NAMES[dayIndex] + ' rigenerato');
 }
 
-function goToMenu(){if(S.cfg.done){document.getElementById('mKcal').value=S.tdee.target;document.getElementById('mProt').value=S.tdee.prot;document.getElementById('mCarb').value=S.tdee.carb;document.getElementById('mDiet').value=S.cfg.diet;const n=[...S.cfg.intol,...S.cfg.allergy].join(', ');if(n)document.getElementById('mNotes').value='Evitare: '+n;document.getElementById('menuFormSub').textContent='Dati importati dal configuratore — modificabili prima di generare.';}goTo('menu');}
+function goToMenu(){
+  if(S.cfg.done){
+    document.getElementById('mKcal').value=S.tdee.target;
+    document.getElementById('mProt').value=S.tdee.prot;
+    document.getElementById('mCarb').value=S.tdee.carb;
+    document.getElementById('mDiet').value=S.cfg.diet;
+    const n=[...S.cfg.intol,...S.cfg.allergy].join(', ');
+    if(n)document.getElementById('mNotes').value='Evitare: '+n;
+    document.getElementById('menuFormSub').textContent='Target: '+S.tdee.target+' kcal · '+S.tdee.prot+'g prot · '+S.tdee.carb+'g carb — modificabili prima di generare.';
+  }
+  goTo('menu');
+}
 
 
 // ============================================================
@@ -1119,12 +1130,16 @@ function pickFoodWithPref(catStr, stagione, regime, usedThisWeek, usedToday, slo
   const excludeKeys = (mealType && PASTO_EXCLUDE[mealType]) || [];
   const allowKeys = slot?.allowKeys || null;
 
+  const slotExcludeKeys = slot?.excludeKeys || [];
+
   function isAllowed(item){
     const n = item.n.toLowerCase();
-    // Blacklist
+    // Blacklist globale
     if(BLACKLIST.some(b=>n.includes(b.toLowerCase()))) return false;
-    // Pasto exclude
+    // Pasto exclude (tipo pasto)
     if(excludeKeys.some(e=>n.includes(e))) return false;
+    // Slot excludeKeys (specifici dello slot)
+    if(slotExcludeKeys.some(e=>n.includes(e))) return false;
     // allowKeys — se specificati, l'alimento deve contenere almeno una chiave
     if(allowKeys && !allowKeys.some(k=>n.includes(k))) return false;
     return true;
@@ -1699,41 +1714,50 @@ const PASTO_EXCLUDE = {
 const PASTO_TEMPLATE = {
   'colazione': [
     {cat:'cereali', gBase:60, role:'carb',
-     allowKeys:['avena','fette biscottate','pane','muesli','farro','orzo','fiocchi','gallette','crackers']},
+     allowKeys:["fiocchi d'avena","farina d'avena",'fette biscottate','pane','muesli','gallette','crackers']},
     {cat:'latticini', gBase:150, role:'prot',
-     allowKeys:['yogurt','ricotta','latte','kefir','fior di latte']},
-    {cat:'frutta', gBase:120, role:'free'}
+     allowKeys:['yogurt','latte di vacca']},
+    {cat:'frutta', gBase:130, role:'free',
+     excludeKeys:['secca','secchi','disidrat','sciroppat','canditi']}
   ],
   'spuntino_mattina': [
-    {cat:'frutta', gBase:180, role:'free'},
-    {cat:'latticini', gBase:80, role:'prot', optional:true,
-     allowKeys:['yogurt','ricotta']}
+    {cat:'frutta', gBase:200, role:'free',
+     excludeKeys:['secca','secchi','disidrat','sciroppat']},
+    {cat:'latticini', gBase:100, role:'prot', optional:true,
+     allowKeys:['yogurt']}
   ],
   'pranzo': [
-    {cat:'cereali', gBase:85, role:'carb',
-     allowKeys:['pasta','riso','farro','orzo','couscous','polenta','gnocchi','orzo perlato','quinoa']},
-    {cat:'carne|pesce|legumi', gBase:150, role:'prot'},
-    {cat:'verdure', gBase:150, role:'free'},
+    {cat:'cereali', gBase:90, role:'carb',
+     allowKeys:['pasta di semola','pasta all','riso, brillato','riso basmati','riso, integrale','farro perlato','orzo perlato','couscous','gnocchi di patate','quinoa']},
+    {cat:'carne|pesce|legumi', gBase:150, role:'prot',
+     excludeKeys:['fegato','cuore','coratella','trippa','wurstel','mortadella','salsiccia','patè','salame','prosciutto crudo']},
+    {cat:'verdure', gBase:150, role:'free',
+     excludeKeys:['pizza','ravioli','lasagna','risotto','minestre in scatola']},
     {cat:'condimenti', gBase:10, role:'fat',
-     allowKeys:['olio']}
+     allowKeys:['olio extravergine','olio di oliva']}
   ],
   'spuntino': [
-    {cat:'frutta', gBase:180, role:'free'},
-    {cat:'latticini', gBase:80, role:'prot', optional:true,
-     allowKeys:['yogurt','ricotta']}
+    {cat:'frutta', gBase:200, role:'free',
+     excludeKeys:['secca','secchi','disidrat']},
+    {cat:'latticini', gBase:100, role:'prot', optional:true,
+     allowKeys:['yogurt','ricotta di vacca']}
   ],
   'spuntino_pomeriggio': [
-    {cat:'frutta', gBase:150, role:'free'},
-    {cat:'cereali', gBase:30, role:'carb', optional:true,
+    {cat:'frutta', gBase:180, role:'free',
+     excludeKeys:['secca','secchi','disidrat']},
+    {cat:'cereali', gBase:25, role:'carb', optional:true,
      allowKeys:['gallette','crackers','fette biscottate']}
   ],
   'cena': [
-    {cat:'carne|pesce|legumi', gBase:170, role:'prot'},
-    {cat:'verdure', gBase:200, role:'free'},
-    {cat:'cereali', gBase:60, role:'carb', optional:true,
-     allowKeys:['patate','riso','pane','farro','pasta','couscous']},
+    {cat:'carne|pesce|legumi', gBase:180, role:'prot',
+     excludeKeys:['fegato','cuore','coratella','trippa','wurstel','mortadella','salsiccia','patè','salame','prosciutto crudo']},
+    {cat:'verdure', gBase:200, role:'free',
+     excludeKeys:['pizza','ravioli','lasagna','risotto','minestre in scatola']},
+    {cat:'verdure', gBase:180, role:'carb',
+     allowKeys:['patate, con buccia','patate, senza buccia','patate novelle','patate, cotte'],
+     optional:true},
     {cat:'condimenti', gBase:10, role:'fat',
-     allowKeys:['olio']}
+     allowKeys:['olio extravergine','olio di oliva']}
   ]
 };
 
@@ -1842,8 +1866,8 @@ function buildMeal(tipo, targetKcal, targetProt, targetCarb, targetFat, stagione
   // Step 2: scala le grammature per centrare il target calorico
   if(targetKcal > 0 && ingredienti.length > 0){
     const currentKcal = ingredienti.reduce((s,i)=>s+i.kcal, 0);
-    const ratio = Math.min(1.8, Math.max(0.55, targetKcal / currentKcal));
-    if(Math.abs(ratio - 1) > 0.12){
+    const ratio = Math.min(2.0, Math.max(0.45, targetKcal / currentKcal));
+    if(Math.abs(ratio - 1) > 0.08){
       totals = {kcal:0, prot:0, fat:0, carb:0};
       ingredienti = ingredienti.map(ing => {
         const g = Math.max(10, Math.round(ing.grams * ratio / 5) * 5);
